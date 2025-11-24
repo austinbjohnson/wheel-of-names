@@ -1,5 +1,3 @@
-# Prompt One-Shot - Wheel of Names
-
 **Build a "Wheel of Names" web app using the official Zapier Brand Guide.**
 
 **Design & Branding:**
