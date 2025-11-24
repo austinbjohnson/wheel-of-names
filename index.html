@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wheel of Names - Model Comparison</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --zap-orange: #FF4F00;
@@ -50,6 +51,7 @@
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
+            flex: 1;
         }
 
         .toggle-btn {
@@ -63,6 +65,9 @@
             cursor: pointer;
             transition: all 0.2s;
             opacity: 0.6;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .toggle-btn:hover {
@@ -78,31 +83,19 @@
             box-shadow: 0 2px 8px rgba(255, 79, 0, 0.3);
         }
 
-        .toggle-btn.winner::after {
-            content: '🏆';
-            margin-left: 6px;
-            font-size: 0.8em;
-        }
-
         /* Main Comparison Area */
         .comparison-container {
             flex: 1;
             background-color: var(--almost-white);
             overflow: hidden;
-            display: flex; /* Default for 1 or 2 items */
+            display: flex;
             width: 100%;
             height: 100%;
         }
 
         /* Layout Variants */
-        .layout-single {
-            display: block;
-        }
-        
-        .layout-split {
-            display: flex;
-        }
-        
+        .layout-single { display: block; }
+        .layout-split { display: flex; }
         .layout-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(33%, 1fr));
@@ -120,21 +113,11 @@
             overflow: hidden;
         }
 
-        .preview-card.hidden {
-            display: none;
-        }
+        .preview-card.hidden { display: none; }
 
         /* Dynamic Sizing */
-        .layout-single .preview-card {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .layout-split .preview-card {
-            width: 50%;
-            flex: 1;
-        }
+        .layout-single .preview-card { width: 100%; height: 100%; border: none; }
+        .layout-split .preview-card { width: 50%; flex: 1; }
 
         .card-header {
             padding: 0.75rem 1rem;
@@ -145,6 +128,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+        
+        .card-date {
+            font-weight: 400;
+            opacity: 0.7;
+            font-size: 0.8em;
+            margin-left: 8px;
         }
 
         .card-header a {
@@ -167,14 +157,84 @@
             display: block;
         }
 
-        /* Prompt Drawer (Optional overlay) */
-        .prompt-trigger {
-            margin-left: auto;
+        /* Utility Buttons */
+        .utility-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .utility-btn {
             font-size: 0.9rem;
             text-decoration: underline;
             cursor: pointer;
             color: var(--earth);
+            background: none;
+            border: none;
+            padding: 0;
         }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(32, 21, 21, 0.6);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-backdrop.active { display: flex; }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 { margin: 0; color: var(--zap-orange); }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--earth);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+        
+        .modal-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        .modal-body th, .modal-body td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .modal-body th { background-color: #f5f5f5; }
+
     </style>
 </head>
 <body>
@@ -184,14 +244,17 @@
         <div class="toggles" id="toggleContainer">
             <!-- Buttons injected by JS -->
         </div>
-        <div class="prompt-trigger" onclick="window.open('prompt-oneShot-wON.md', '_blank')">View Prompt Source</div>
+        <div class="utility-links">
+            <button class="utility-btn" onclick="openModal()">📊 View Evaluation Results</button>
+            <button class="utility-btn" onclick="window.open('prompt-oneShot-wON.md', '_blank')">📝 View Prompt</button>
+        </div>
     </header>
 
     <main class="comparison-container" id="mainContainer">
         <!-- Claude 4.5 Sonnet (Winner) -->
         <div class="preview-card" data-id="sonnet">
             <div class="card-header">
-                <span>Claude 4.5 Sonnet (Winner) 🏆</span>
+                <span>Claude 4.5 Sonnet 🏆 <span class="card-date">(2025-11-24)</span></span>
                 <a href="results/claude-4.5-sonnet.html" target="_blank">Open Fullscreen ↗</a>
             </div>
             <iframe src="results/claude-4.5-sonnet.html" title="Claude 4.5 Sonnet"></iframe>
@@ -200,7 +263,7 @@
         <!-- GPT 5.1 Codex (Runner Up) -->
         <div class="preview-card" data-id="gpt">
             <div class="card-header">
-                <span>GPT 5.1 Codex (Runner Up)</span>
+                <span>GPT 5.1 Codex (Runner Up) <span class="card-date">(2025-11-24)</span></span>
                 <a href="results/gpt-5.1-codex-high-fast.html" target="_blank">Open Fullscreen ↗</a>
             </div>
             <iframe src="results/gpt-5.1-codex-high-fast.html" title="GPT 5.1 Codex"></iframe>
@@ -209,7 +272,7 @@
         <!-- Gemini 3 Pro -->
         <div class="preview-card" data-id="gemini">
             <div class="card-header">
-                <span>Gemini 3 Pro</span>
+                <span>Gemini 3 Pro <span class="card-date">(2025-11-24)</span></span>
                 <a href="results/gemini-3-pro.html" target="_blank">Open Fullscreen ↗</a>
             </div>
             <iframe src="results/gemini-3-pro.html" title="Gemini 3 Pro"></iframe>
@@ -218,7 +281,7 @@
         <!-- Claude 4.5 Haiku -->
         <div class="preview-card" data-id="haiku">
             <div class="card-header">
-                <span>Claude 4.5 Haiku</span>
+                <span>Claude 4.5 Haiku <span class="card-date">(2025-11-24)</span></span>
                 <a href="results/claude-4.5-haiku.html" target="_blank">Open Fullscreen ↗</a>
             </div>
             <iframe src="results/claude-4.5-haiku.html" title="Claude 4.5 Haiku"></iframe>
@@ -227,7 +290,7 @@
         <!-- Grok Code Fast -->
         <div class="preview-card" data-id="grok">
             <div class="card-header">
-                <span>Grok Code Fast</span>
+                <span>Grok Code Fast <span class="card-date">(2025-11-24)</span></span>
                 <a href="results/grok-code-fast-1.html" target="_blank">Open Fullscreen ↗</a>
             </div>
             <iframe src="results/grok-code-fast-1.html" title="Grok Code Fast"></iframe>
@@ -236,21 +299,34 @@
         <!-- Composer 1 -->
         <div class="preview-card" data-id="composer">
             <div class="card-header">
-                <span>Composer 1</span>
+                <span>Composer 1 <span class="card-date">(2025-11-24)</span></span>
                 <a href="results/composer-1.html" target="_blank">Open Fullscreen ↗</a>
             </div>
             <iframe src="results/composer-1.html" title="Composer 1"></iframe>
         </div>
     </main>
 
+    <!-- Results Modal -->
+    <div class="modal-backdrop" id="resultsModal" onclick="closeModal(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Evaluation Results</h2>
+                <button class="modal-close" onclick="closeModal(event)">×</button>
+            </div>
+            <div class="modal-body" id="markdownContent">
+                <!-- Markdown injected here -->
+            </div>
+        </div>
+    </div>
+
     <script>
         const models = [
-            { id: 'sonnet', name: 'Claude 4.5 Sonnet', winner: true },
-            { id: 'gpt', name: 'GPT 5.1 Codex' },
-            { id: 'gemini', name: 'Gemini 3 Pro' },
-            { id: 'haiku', name: 'Claude 4.5 Haiku' },
-            { id: 'grok', name: 'Grok Code Fast' },
-            { id: 'composer', name: 'Composer 1' }
+            { id: 'sonnet', name: 'Claude 4.5 Sonnet', date: '2025-11-24', winner: true },
+            { id: 'gpt', name: 'GPT 5.1 Codex', date: '2025-11-24' },
+            { id: 'gemini', name: 'Gemini 3 Pro', date: '2025-11-24' },
+            { id: 'haiku', name: 'Claude 4.5 Haiku', date: '2025-11-24' },
+            { id: 'grok', name: 'Grok Code Fast', date: '2025-11-24' },
+            { id: 'composer', name: 'Composer 1', date: '2025-11-24' }
         ];
 
         // Default Selection
@@ -266,17 +342,15 @@
                     class="toggle-btn ${selected.includes(m.id) ? 'active' : ''} ${m.winner ? 'winner' : ''}" 
                     onclick="toggleModel('${m.id}')"
                 >
-                    ${m.name}
+                    ${m.name} 
+                    ${m.winner ? '🏆' : ''}
                 </button>
             `).join('');
         }
 
         function toggleModel(id) {
             if (selected.includes(id)) {
-                // Don't allow deselecting the last one
-                if (selected.length > 1) {
-                    selected = selected.filter(s => s !== id);
-                }
+                if (selected.length > 1) selected = selected.filter(s => s !== id);
             } else {
                 selected.push(id);
             }
@@ -284,10 +358,7 @@
         }
 
         function updateUI() {
-            // Update Toggles
             renderToggles();
-
-            // Update Cards Visibility
             cards.forEach(card => {
                 if (selected.includes(card.dataset.id)) {
                     card.classList.remove('hidden');
@@ -296,14 +367,89 @@
                 }
             });
 
-            // Update Layout Classes
-            mainContainer.className = 'comparison-container'; // Reset
-            if (selected.length === 1) {
-                mainContainer.classList.add('layout-single');
-            } else if (selected.length === 2) {
-                mainContainer.classList.add('layout-split');
-            } else {
-                mainContainer.classList.add('layout-grid');
+            mainContainer.className = 'comparison-container';
+            if (selected.length === 1) mainContainer.classList.add('layout-single');
+            else if (selected.length === 2) mainContainer.classList.add('layout-split');
+            else mainContainer.classList.add('layout-grid');
+        }
+
+        // Modal Logic
+        const evalResults = `# Evaluation Results: Wheel of Names
+
+## Summary
+
+*   **Winner:** **Claude 4.5 Sonnet**
+    *   It delivered the most robust and visually accurate implementation. It handled the "Top Pointer" logic correctly, included full CRUD for names, and had a polished UI that strictly followed the brand guide.
+*   **Runner Up:** **GPT 5.1 Codex High Fast**
+    *   Very high quality, professional UI, and excellent code structure (using ARIA labels). It used a "Right-side Pointer" which is valid but less conventional for a "Wheel of Fortune" style.
+*   **Notable Fail:** **Composer 1**
+    *   Failed the core branding requirement by using a black background instead of Cream/White.
+*   **Potential Bug:** **Grok Code Fast 1**
+    *   Likely has an "off-by-90-degrees" bug where the calculated winner (based on rotation) does not visually match the slice under the top pointer.
+
+---
+
+## Detailed Matrix
+
+| Feature | Claude 4.5 Haiku | Claude 4.5 Sonnet | Composer 1 | Gemini 3 Pro | GPT 5.1 Codex | Grok Fast |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Visuals** | | | | | | |
+| Brand Colors | ✅ | ✅ | ❌ (Black BG) | ✅ | ✅ | ✅ |
+| Slice Palette | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Spinner** | | | | | | |
+| Canvas/SVG | Canvas | Canvas | Canvas | Canvas | Canvas | SVG |
+| Pointer Pos | Top | Top | Top | Right | Right | Top |
+| Math Logic | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ (Likely Off) |
+| **Interaction** | | | | | | |
+| Add Name | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Edit Name | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Disable (Toggle) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Confetti | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Dialog Options | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+---
+
+## Model-by-Model Notes
+
+### 1. Claude 4.5 Haiku
+*   **Pros:** Good visual adherence. Simple, clean code.
+*   **Cons:** Lacked "Edit" functionality for names (could only add/remove).
+*   **Verdict:** Solid B+. Good for a quick prototype but missing full features.
+
+### 2. Claude 4.5 Sonnet
+*   **Pros:** Best in Class. Full feature set (Add/Edit/Delete/Disable). Correct math for top-pointer. Polished UI with gradients.
+*   **Cons:** None significant.
+*   **Verdict:** A+ (Winner).
+
+### 3. Composer 1
+*   **Pros:** Good functionality (localStorage support).
+*   **Cons:** **Visual Failure.** The prompt asked for "Cream" or "Almost White" background, but it used \`#000\` (Black).
+*   **Verdict:** C. Functional but ignored design constraints.
+
+### 4. Gemini 3 Pro
+*   **Pros:** Used an external library for superior confetti. interesting "Textarea" bulk edit approach.
+*   **Cons:** Pointer positioning (Right side) is less intuitive than Top, but valid.
+*   **Verdict:** A-. Very strong logic and features.
+
+### 5. GPT 5.1 Codex High Fast
+*   **Pros:** Most "Professional" code structure. ARIA accessibility labels. Great gradients. LocalStorage persistence.
+*   **Cons:** Right-side pointer (subjective preference).
+*   **Verdict:** A. Excellent engineering quality.
+
+### 6. Grok Code Fast 1
+*   **Pros:** Used SVG for the wheel (cleaner scaling than Canvas).
+*   **Cons:** **Logic Error.** The wheel starts drawing at 0° (Right), but the pointer is at 90° (Top). The winning calculation didn't account for this 90° offset, meaning the code "thinks" the winner is at 0° when the pointer is actually looking at 90°.
+*   **Verdict:** B-. Good tech stack (SVG), but broken core logic.`;
+
+        function openModal() {
+            document.getElementById('markdownContent').innerHTML = marked.parse(evalResults);
+            document.getElementById('resultsModal').classList.add('active');
+        }
+
+        function closeModal(e) {
+            // Close if clicking the backdrop or the X button
+            if (e.target === document.getElementById('resultsModal') || e.target.classList.contains('modal-close')) {
+                document.getElementById('resultsModal').classList.remove('active');
             }
         }
 
