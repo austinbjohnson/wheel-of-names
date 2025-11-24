@@ -19,156 +19,296 @@
             background-color: var(--cream);
             color: var(--earth);
             margin: 0;
-            padding: 20px;
-            line-height: 1.6;
-        }
-
-        header {
-            background-color: var(--zap-orange);
-            color: var(--almost-white);
-            padding: 2rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-        }
-
-        h1 {
-            margin: 0 0 1rem 0;
-        }
-
-        .prompt-section {
-            background-color: var(--almost-white);
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid var(--earth);
-            margin-bottom: 2rem;
-            white-space: pre-wrap;
-            font-family: monospace;
-            overflow-x: auto;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-            gap: 2rem;
-        }
-
-        .card {
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 0;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            height: 600px;
+            overflow: hidden;
+        }
+
+        /* Control Bar */
+        .control-bar {
+            background-color: white;
+            border-bottom: 1px solid rgba(32, 21, 21, 0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 100;
+            flex-wrap: wrap;
+        }
+
+        .brand-title {
+            font-weight: 900;
+            color: var(--zap-orange);
+            margin-right: 2rem;
+            font-size: 1.2rem;
+        }
+
+        .toggles {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .toggle-btn {
+            background: transparent;
+            border: 2px solid var(--earth);
+            color: var(--earth);
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0.6;
+        }
+
+        .toggle-btn:hover {
+            opacity: 1;
+            background-color: rgba(32, 21, 21, 0.05);
+        }
+
+        .toggle-btn.active {
+            background-color: var(--zap-orange);
+            border-color: var(--zap-orange);
+            color: white;
+            opacity: 1;
+            box-shadow: 0 2px 8px rgba(255, 79, 0, 0.3);
+        }
+
+        .toggle-btn.winner::after {
+            content: '🏆';
+            margin-left: 6px;
+            font-size: 0.8em;
+        }
+
+        /* Main Comparison Area */
+        .comparison-container {
+            flex: 1;
+            background-color: var(--almost-white);
+            overflow: hidden;
+            display: flex; /* Default for 1 or 2 items */
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Layout Variants */
+        .layout-single {
+            display: block;
+        }
+        
+        .layout-split {
+            display: flex;
+        }
+        
+        .layout-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(33%, 1fr));
+            grid-auto-rows: 1fr;
+        }
+
+        /* Iframe Wrapper */
+        .preview-card {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(32, 21, 21, 0.1);
+            border-bottom: 1px solid rgba(32, 21, 21, 0.1);
+            background: white;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .preview-card.hidden {
+            display: none;
+        }
+
+        /* Dynamic Sizing */
+        .layout-single .preview-card {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .layout-split .preview-card {
+            width: 50%;
+            flex: 1;
         }
 
         .card-header {
+            padding: 0.75rem 1rem;
             background-color: var(--night);
             color: white;
-            padding: 1rem;
-            font-weight: bold;
-            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header a {
+            color: var(--cream);
+            text-decoration: none;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .card-header a:hover {
+            text-decoration: underline;
+            opacity: 1;
         }
 
         iframe {
             flex: 1;
             width: 100%;
+            height: 100%;
             border: none;
-            background-color: white;
+            display: block;
         }
 
-        .fullscreen-link {
-            display: block;
-            text-align: center;
-            padding: 0.5rem;
-            background-color: var(--moss);
-            color: white;
-            text-decoration: none;
+        /* Prompt Drawer (Optional overlay) */
+        .prompt-trigger {
+            margin-left: auto;
             font-size: 0.9rem;
-        }
-        
-        .fullscreen-link:hover {
             text-decoration: underline;
+            cursor: pointer;
+            color: var(--earth);
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Model Comparison: Wheel of Names</h1>
-        <p>Comparing one-shot generation results from various LLMs.</p>
+    <header class="control-bar">
+        <div class="brand-title">🎡 Wheel of Names Comparison</div>
+        <div class="toggles" id="toggleContainer">
+            <!-- Buttons injected by JS -->
+        </div>
+        <div class="prompt-trigger" onclick="window.open('prompt-oneShot-wON.md', '_blank')">View Prompt Source</div>
     </header>
 
-    <section>
-        <h2>The Prompt</h2>
-        <div class="prompt-section"># Prompt One-Shot - Wheel of Names
-
-**Build a "Wheel of Names" web app using the official Zapier Brand Guide.**
-
-**Design & Branding:**
-*   **Color Palette:**
-    *   **Zap Orange:** #FF4F00 (Primary hero color - use for roughly 60% of the design impact)
-    *   **Earth:** #201515 (Dark neutral for text and contrast - 20%)
-    *   **Cream:** #FFF3E6 (Warm light background/surface - 20%)
-    *   **Almost White:** #FFFDF9 (Alternative light background)
-    *   **Expanded Palette (for wheel slices):** Moss (#1F3121), Night (#2B2358), Lavender (#C1B7FF), Peach (#FFBF6E), Bolt (#F6FFDB), Sky (#CDE4E1).
-*   **Usage:** Zap Orange should be the dominant hero color. Use Earth in place of pure black. Cream provides a warm foundation. The wheel itself should be colorful, utilizing the Expanded Palette for distinct slices, ensuring high contrast with the text (using Earth or Almost White for text depending on slice brightness).
-
-**Core Requirements:**
-*   **Input:** Allow users to add, edit, and manage a list of names.
-*   **Visuals:** Render a spinning wheel with names in pie slices.
-*   **Interaction:**
-    *   On spin end: Highlight the selected name clearly and trigger a confetti animation.
-    *   Post-spin dialog: Offer options to "Keep" the name or "Disable" it from future spins.
-*   **State Management:** Allow users to manually enable/disable specific names from the list at any time without spinning.</div>
-    </section>
-
-    <section>
-        <h2>Results</h2>
-        <div class="grid">
-            <!-- Claude 4.5 Haiku -->
-            <div class="card">
-                <div class="card-header">Claude 4.5 Haiku</div>
-                <iframe src="results/claude-4.5-haiku.html" title="Claude 4.5 Haiku Result"></iframe>
-                <a href="results/claude-4.5-haiku.html" class="fullscreen-link" target="_blank">View Fullscreen</a>
+    <main class="comparison-container" id="mainContainer">
+        <!-- Claude 4.5 Sonnet (Winner) -->
+        <div class="preview-card" data-id="sonnet">
+            <div class="card-header">
+                <span>Claude 4.5 Sonnet (Winner) 🏆</span>
+                <a href="results/claude-4.5-sonnet.html" target="_blank">Open Fullscreen ↗</a>
             </div>
-
-            <!-- Claude 4.5 Sonnet -->
-            <div class="card">
-                <div class="card-header">Claude 4.5 Sonnet</div>
-                <iframe src="results/claude-4.5-sonnet.html" title="Claude 4.5 Sonnet Result"></iframe>
-                <a href="results/claude-4.5-sonnet.html" class="fullscreen-link" target="_blank">View Fullscreen</a>
-            </div>
-
-            <!-- Composer 1 -->
-            <div class="card">
-                <div class="card-header">Composer 1</div>
-                <iframe src="results/composer-1.html" title="Composer 1 Result"></iframe>
-                <a href="results/composer-1.html" class="fullscreen-link" target="_blank">View Fullscreen</a>
-            </div>
-
-            <!-- Gemini 3 Pro -->
-            <div class="card">
-                <div class="card-header">Gemini 3 Pro</div>
-                <iframe src="results/gemini-3-pro.html" title="Gemini 3 Pro Result"></iframe>
-                <a href="results/gemini-3-pro.html" class="fullscreen-link" target="_blank">View Fullscreen</a>
-            </div>
-
-            <!-- GPT 5.1 Codex High Fast -->
-            <div class="card">
-                <div class="card-header">GPT 5.1 Codex High Fast</div>
-                <iframe src="results/gpt-5.1-codex-high-fast.html" title="GPT 5.1 Codex High Fast Result"></iframe>
-                <a href="results/gpt-5.1-codex-high-fast.html" class="fullscreen-link" target="_blank">View Fullscreen</a>
-            </div>
-
-            <!-- Grok Code Fast 1 -->
-            <div class="card">
-                <div class="card-header">Grok Code Fast 1</div>
-                <iframe src="results/grok-code-fast-1.html" title="Grok Code Fast 1 Result"></iframe>
-                <a href="results/grok-code-fast-1.html" class="fullscreen-link" target="_blank">View Fullscreen</a>
-            </div>
+            <iframe src="results/claude-4.5-sonnet.html" title="Claude 4.5 Sonnet"></iframe>
         </div>
-    </section>
 
+        <!-- GPT 5.1 Codex (Runner Up) -->
+        <div class="preview-card" data-id="gpt">
+            <div class="card-header">
+                <span>GPT 5.1 Codex (Runner Up)</span>
+                <a href="results/gpt-5.1-codex-high-fast.html" target="_blank">Open Fullscreen ↗</a>
+            </div>
+            <iframe src="results/gpt-5.1-codex-high-fast.html" title="GPT 5.1 Codex"></iframe>
+        </div>
+
+        <!-- Gemini 3 Pro -->
+        <div class="preview-card" data-id="gemini">
+            <div class="card-header">
+                <span>Gemini 3 Pro</span>
+                <a href="results/gemini-3-pro.html" target="_blank">Open Fullscreen ↗</a>
+            </div>
+            <iframe src="results/gemini-3-pro.html" title="Gemini 3 Pro"></iframe>
+        </div>
+
+        <!-- Claude 4.5 Haiku -->
+        <div class="preview-card" data-id="haiku">
+            <div class="card-header">
+                <span>Claude 4.5 Haiku</span>
+                <a href="results/claude-4.5-haiku.html" target="_blank">Open Fullscreen ↗</a>
+            </div>
+            <iframe src="results/claude-4.5-haiku.html" title="Claude 4.5 Haiku"></iframe>
+        </div>
+
+        <!-- Grok Code Fast -->
+        <div class="preview-card" data-id="grok">
+            <div class="card-header">
+                <span>Grok Code Fast</span>
+                <a href="results/grok-code-fast-1.html" target="_blank">Open Fullscreen ↗</a>
+            </div>
+            <iframe src="results/grok-code-fast-1.html" title="Grok Code Fast"></iframe>
+        </div>
+
+        <!-- Composer 1 -->
+        <div class="preview-card" data-id="composer">
+            <div class="card-header">
+                <span>Composer 1</span>
+                <a href="results/composer-1.html" target="_blank">Open Fullscreen ↗</a>
+            </div>
+            <iframe src="results/composer-1.html" title="Composer 1"></iframe>
+        </div>
+    </main>
+
+    <script>
+        const models = [
+            { id: 'sonnet', name: 'Claude 4.5 Sonnet', winner: true },
+            { id: 'gpt', name: 'GPT 5.1 Codex' },
+            { id: 'gemini', name: 'Gemini 3 Pro' },
+            { id: 'haiku', name: 'Claude 4.5 Haiku' },
+            { id: 'grok', name: 'Grok Code Fast' },
+            { id: 'composer', name: 'Composer 1' }
+        ];
+
+        // Default Selection
+        let selected = ['sonnet', 'gpt'];
+
+        const toggleContainer = document.getElementById('toggleContainer');
+        const mainContainer = document.getElementById('mainContainer');
+        const cards = document.querySelectorAll('.preview-card');
+
+        function renderToggles() {
+            toggleContainer.innerHTML = models.map(m => `
+                <button 
+                    class="toggle-btn ${selected.includes(m.id) ? 'active' : ''} ${m.winner ? 'winner' : ''}" 
+                    onclick="toggleModel('${m.id}')"
+                >
+                    ${m.name}
+                </button>
+            `).join('');
+        }
+
+        function toggleModel(id) {
+            if (selected.includes(id)) {
+                // Don't allow deselecting the last one
+                if (selected.length > 1) {
+                    selected = selected.filter(s => s !== id);
+                }
+            } else {
+                selected.push(id);
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            // Update Toggles
+            renderToggles();
+
+            // Update Cards Visibility
+            cards.forEach(card => {
+                if (selected.includes(card.dataset.id)) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            // Update Layout Classes
+            mainContainer.className = 'comparison-container'; // Reset
+            if (selected.length === 1) {
+                mainContainer.classList.add('layout-single');
+            } else if (selected.length === 2) {
+                mainContainer.classList.add('layout-split');
+            } else {
+                mainContainer.classList.add('layout-grid');
+            }
+        }
+
+        // Init
+        updateUI();
+    </script>
 </body>
 </html>
