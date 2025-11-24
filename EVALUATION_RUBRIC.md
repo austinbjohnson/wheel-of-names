@@ -36,6 +36,8 @@ This rubric defines the pass/fail criteria for evaluating the "Wheel of Names" i
 *   **Zero Items:** Does it crash or show a meaningful empty state?
 
 ## 5. Reporting Standards
-*   **File Naming:** All evaluation results must be saved as a new file with the current date prefix: `YYYYMMDD_EVALUATION_RESULTS.md` (e.g., `20251124_EVALUATION_RESULTS.md`).
+*   **Folder Structure:** All results from a run must be saved in a new timestamped directory: `results/YYYYMMDD_HHMM/`.
+*   **Eval File:** The evaluation report must be saved as `evaluations/YYYYMMDD_HHMM_results.md`.
+*   **Registry:** New runs must be appended to the `benchmarkData` array in `data.js`.
 *   **Versioning:** Do not overwrite previous evaluation files; keep a historical log.
 

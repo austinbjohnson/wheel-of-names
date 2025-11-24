@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wheel of Names - Model Comparison</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Load External Data -->
+    <script src="data.js"></script>
     <style>
         :root {
             --zap-orange: #FF4F00;
@@ -43,8 +45,36 @@
         .brand-title {
             font-weight: 900;
             color: var(--zap-orange);
-            margin-right: 2rem;
+            margin-right: 1rem;
             font-size: 1.2rem;
+            white-space: nowrap;
+        }
+
+        /* Run Selector */
+        .run-selector-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 2rem;
+            border-right: 1px solid #eee;
+            padding-right: 2rem;
+        }
+
+        .run-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #999;
+            letter-spacing: 0.05em;
+        }
+
+        #runSelect {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: var(--earth);
         }
 
         .toggles {
@@ -240,10 +270,19 @@
 <body>
 
     <header class="control-bar">
-        <div class="brand-title">🎡 Wheel of Names Comparison</div>
+        <div class="brand-title">🎡 Wheel of Names</div>
+        
+        <div class="run-selector-container">
+            <span class="run-label">Run:</span>
+            <select id="runSelect" onchange="handleRunChange(this.value)">
+                <!-- Populated by JS -->
+            </select>
+        </div>
+
         <div class="toggles" id="toggleContainer">
             <!-- Buttons injected by JS -->
         </div>
+
         <div class="utility-links">
             <button class="utility-btn" onclick="openModal()">📊 View Evaluation Results</button>
             <button class="utility-btn" onclick="window.open('prompt-oneShot-wON.md', '_blank')">📝 View Prompt</button>
@@ -251,59 +290,7 @@
     </header>
 
     <main class="comparison-container" id="mainContainer">
-        <!-- Claude 4.5 Sonnet (Winner) -->
-        <div class="preview-card" data-id="sonnet">
-            <div class="card-header">
-                <span>Claude 4.5 Sonnet 🏆 <span class="card-date">(2025-11-24)</span></span>
-                <a href="results/claude-4.5-sonnet.html" target="_blank">Open Fullscreen ↗</a>
-            </div>
-            <iframe src="results/claude-4.5-sonnet.html" title="Claude 4.5 Sonnet"></iframe>
-        </div>
-
-        <!-- GPT 5.1 Codex (Runner Up) -->
-        <div class="preview-card" data-id="gpt">
-            <div class="card-header">
-                <span>GPT 5.1 Codex (Runner Up) <span class="card-date">(2025-11-24)</span></span>
-                <a href="results/gpt-5.1-codex-high-fast.html" target="_blank">Open Fullscreen ↗</a>
-            </div>
-            <iframe src="results/gpt-5.1-codex-high-fast.html" title="GPT 5.1 Codex"></iframe>
-        </div>
-
-        <!-- Gemini 3 Pro -->
-        <div class="preview-card" data-id="gemini">
-            <div class="card-header">
-                <span>Gemini 3 Pro <span class="card-date">(2025-11-24)</span></span>
-                <a href="results/gemini-3-pro.html" target="_blank">Open Fullscreen ↗</a>
-            </div>
-            <iframe src="results/gemini-3-pro.html" title="Gemini 3 Pro"></iframe>
-        </div>
-
-        <!-- Claude 4.5 Haiku -->
-        <div class="preview-card" data-id="haiku">
-            <div class="card-header">
-                <span>Claude 4.5 Haiku <span class="card-date">(2025-11-24)</span></span>
-                <a href="results/claude-4.5-haiku.html" target="_blank">Open Fullscreen ↗</a>
-            </div>
-            <iframe src="results/claude-4.5-haiku.html" title="Claude 4.5 Haiku"></iframe>
-        </div>
-
-        <!-- Grok Code Fast -->
-        <div class="preview-card" data-id="grok">
-            <div class="card-header">
-                <span>Grok Code Fast <span class="card-date">(2025-11-24)</span></span>
-                <a href="results/grok-code-fast-1.html" target="_blank">Open Fullscreen ↗</a>
-            </div>
-            <iframe src="results/grok-code-fast-1.html" title="Grok Code Fast"></iframe>
-        </div>
-
-        <!-- Composer 1 -->
-        <div class="preview-card" data-id="composer">
-            <div class="card-header">
-                <span>Composer 1 <span class="card-date">(2025-11-24)</span></span>
-                <a href="results/composer-1.html" target="_blank">Open Fullscreen ↗</a>
-            </div>
-            <iframe src="results/composer-1.html" title="Composer 1"></iframe>
-        </div>
+        <!-- Iframes injected by JS -->
     </main>
 
     <!-- Results Modal -->
@@ -320,141 +307,128 @@
     </div>
 
     <script>
-        const models = [
-            { id: 'sonnet', name: 'Claude 4.5 Sonnet', date: '2025-11-24', winner: true },
-            { id: 'gpt', name: 'GPT 5.1 Codex', date: '2025-11-24' },
-            { id: 'gemini', name: 'Gemini 3 Pro', date: '2025-11-24' },
-            { id: 'haiku', name: 'Claude 4.5 Haiku', date: '2025-11-24' },
-            { id: 'grok', name: 'Grok Code Fast', date: '2025-11-24' },
-            { id: 'composer', name: 'Composer 1', date: '2025-11-24' }
-        ];
+        // State
+        let currentRun = null;
+        let selectedModels = []; // IDs of selected models
 
-        // Default Selection
-        let selected = ['sonnet', 'gpt'];
-
+        // DOM Elements
+        const runSelect = document.getElementById('runSelect');
         const toggleContainer = document.getElementById('toggleContainer');
         const mainContainer = document.getElementById('mainContainer');
-        const cards = document.querySelectorAll('.preview-card');
+        const modalContent = document.getElementById('markdownContent');
 
-        function renderToggles() {
-            toggleContainer.innerHTML = models.map(m => `
+        function init() {
+            if (!window.benchmarkData || window.benchmarkData.length === 0) {
+                alert('No benchmark data found in data.js');
+                return;
+            }
+
+            // Populate Run Selector
+            window.benchmarkData.forEach(run => {
+                const option = document.createElement('option');
+                option.value = run.id;
+                option.textContent = run.timestamp;
+                runSelect.appendChild(option);
+            });
+
+            // Select first run (newest)
+            handleRunChange(window.benchmarkData[0].id);
+        }
+
+        function handleRunChange(runId) {
+            currentRun = window.benchmarkData.find(r => r.id === runId);
+            
+            // Reset selection to first 2 models or winner + runner up if possible
+            // For now, just pick the first two
+            if (currentRun.models.length >= 2) {
+                selectedModels = [currentRun.models[0].id, currentRun.models[1].id];
+            } else {
+                selectedModels = [currentRun.models[0].id];
+            }
+
+            renderUI();
+        }
+
+        function toggleModel(id) {
+            if (selectedModels.includes(id)) {
+                if (selectedModels.length > 1) selectedModels = selectedModels.filter(s => s !== id);
+            } else {
+                selectedModels.push(id);
+            }
+            updateLayout();
+        }
+
+        function renderUI() {
+            // 1. Render Toggles
+            toggleContainer.innerHTML = currentRun.models.map(m => `
                 <button 
-                    class="toggle-btn ${selected.includes(m.id) ? 'active' : ''} ${m.winner ? 'winner' : ''}" 
+                    class="toggle-btn ${selectedModels.includes(m.id) ? 'active' : ''} ${m.winner ? 'winner' : ''}" 
                     onclick="toggleModel('${m.id}')"
+                    id="btn-${m.id}"
                 >
                     ${m.name} 
                     ${m.winner ? '🏆' : ''}
                 </button>
             `).join('');
+
+            // 2. Render Iframes (re-render all to ensure clean state on run change)
+            mainContainer.innerHTML = currentRun.models.map(m => `
+                <div class="preview-card ${selectedModels.includes(m.id) ? '' : 'hidden'}" id="card-${m.id}">
+                    <div class="card-header">
+                        <span>${m.name} ${m.winner ? '🏆' : ''} <span class="card-date">(${currentRun.timestamp.split(' ')[0]})</span></span>
+                        <a href="${m.path}" target="_blank">Open Fullscreen ↗</a>
+                    </div>
+                    <iframe src="${m.path}" title="${m.name}"></iframe>
+                </div>
+            `).join('');
+
+            updateLayout();
         }
 
-        function toggleModel(id) {
-            if (selected.includes(id)) {
-                if (selected.length > 1) selected = selected.filter(s => s !== id);
-            } else {
-                selected.push(id);
-            }
-            updateUI();
-        }
-
-        function updateUI() {
-            renderToggles();
-            cards.forEach(card => {
-                if (selected.includes(card.dataset.id)) {
-                    card.classList.remove('hidden');
-                } else {
-                    card.classList.add('hidden');
-                }
+        function updateLayout() {
+            // Update Toggles styling
+            currentRun.models.forEach(m => {
+                const btn = document.getElementById(`btn-${m.id}`);
+                if (selectedModels.includes(m.id)) btn.classList.add('active');
+                else btn.classList.remove('active');
             });
 
+            // Update Cards Visibility
+            currentRun.models.forEach(m => {
+                const card = document.getElementById(`card-${m.id}`);
+                if (selectedModels.includes(m.id)) card.classList.remove('hidden');
+                else card.classList.add('hidden');
+            });
+
+            // Update Container Layout
             mainContainer.className = 'comparison-container';
-            if (selected.length === 1) mainContainer.classList.add('layout-single');
-            else if (selected.length === 2) mainContainer.classList.add('layout-split');
+            if (selectedModels.length === 1) mainContainer.classList.add('layout-single');
+            else if (selectedModels.length === 2) mainContainer.classList.add('layout-split');
             else mainContainer.classList.add('layout-grid');
         }
 
-        // Modal Logic
-        const evalResults = `# Evaluation Results: Wheel of Names
-
-## Summary
-
-*   **Winner:** **Claude 4.5 Sonnet**
-    *   It delivered the most robust and visually accurate implementation. It handled the "Top Pointer" logic correctly, included full CRUD for names, and had a polished UI that strictly followed the brand guide.
-*   **Runner Up:** **GPT 5.1 Codex High Fast**
-    *   Very high quality, professional UI, and excellent code structure (using ARIA labels). It used a "Right-side Pointer" which is valid but less conventional for a "Wheel of Fortune" style.
-*   **Notable Fail:** **Composer 1**
-    *   Failed the core branding requirement by using a black background instead of Cream/White.
-*   **Potential Bug:** **Grok Code Fast 1**
-    *   Likely has an "off-by-90-degrees" bug where the calculated winner (based on rotation) does not visually match the slice under the top pointer.
-
----
-
-## Detailed Matrix
-
-| Feature | Claude 4.5 Haiku | Claude 4.5 Sonnet | Composer 1 | Gemini 3 Pro | GPT 5.1 Codex | Grok Fast |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Visuals** | | | | | | |
-| Brand Colors | ✅ | ✅ | ❌ (Black BG) | ✅ | ✅ | ✅ |
-| Slice Palette | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Spinner** | | | | | | |
-| Canvas/SVG | Canvas | Canvas | Canvas | Canvas | Canvas | SVG |
-| Pointer Pos | Top | Top | Top | Right | Right | Top |
-| Math Logic | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ (Likely Off) |
-| **Interaction** | | | | | | |
-| Add Name | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Edit Name | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Disable (Toggle) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Confetti | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Dialog Options | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-
----
-
-## Model-by-Model Notes
-
-### 1. Claude 4.5 Haiku
-*   **Pros:** Good visual adherence. Simple, clean code.
-*   **Cons:** Lacked "Edit" functionality for names (could only add/remove).
-*   **Verdict:** Solid B+. Good for a quick prototype but missing full features.
-
-### 2. Claude 4.5 Sonnet
-*   **Pros:** Best in Class. Full feature set (Add/Edit/Delete/Disable). Correct math for top-pointer. Polished UI with gradients.
-*   **Cons:** None significant.
-*   **Verdict:** A+ (Winner).
-
-### 3. Composer 1
-*   **Pros:** Good functionality (localStorage support).
-*   **Cons:** **Visual Failure.** The prompt asked for "Cream" or "Almost White" background, but it used \`#000\` (Black).
-*   **Verdict:** C. Functional but ignored design constraints.
-
-### 4. Gemini 3 Pro
-*   **Pros:** Used an external library for superior confetti. interesting "Textarea" bulk edit approach.
-*   **Cons:** Pointer positioning (Right side) is less intuitive than Top, but valid.
-*   **Verdict:** A-. Very strong logic and features.
-
-### 5. GPT 5.1 Codex High Fast
-*   **Pros:** Most "Professional" code structure. ARIA accessibility labels. Great gradients. LocalStorage persistence.
-*   **Cons:** Right-side pointer (subjective preference).
-*   **Verdict:** A. Excellent engineering quality.
-
-### 6. Grok Code Fast 1
-*   **Pros:** Used SVG for the wheel (cleaner scaling than Canvas).
-*   **Cons:** **Logic Error.** The wheel starts drawing at 0° (Right), but the pointer is at 90° (Top). The winning calculation didn't account for this 90° offset, meaning the code "thinks" the winner is at 0° when the pointer is actually looking at 90°.
-*   **Verdict:** B-. Good tech stack (SVG), but broken core logic.`;
-
-        function openModal() {
-            document.getElementById('markdownContent').innerHTML = marked.parse(evalResults);
+        async function openModal() {
             document.getElementById('resultsModal').classList.add('active');
+            modalContent.innerHTML = '<p>Loading results...</p>';
+            
+            try {
+                const response = await fetch(currentRun.evalFile);
+                if (!response.ok) throw new Error('Failed to load evaluation results');
+                const text = await response.text();
+                modalContent.innerHTML = marked.parse(text);
+            } catch (err) {
+                modalContent.innerHTML = `<p style="color:red">Error loading results: ${err.message}</p>`;
+            }
         }
 
         function closeModal(e) {
-            // Close if clicking the backdrop or the X button
             if (e.target === document.getElementById('resultsModal') || e.target.classList.contains('modal-close')) {
                 document.getElementById('resultsModal').classList.remove('active');
             }
         }
 
-        // Init
-        updateUI();
+        // Start
+        init();
     </script>
 </body>
 </html>
