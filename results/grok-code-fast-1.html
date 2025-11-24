@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Names - Zapier Style</title>
+    <style>
+        :root {
+            --zap-orange: #FF4F00;
+            --earth: #201515;
+            --cream: #FFF3E6;
+            --almost-white: #FFFDF9;
+            --moss: #1F3121;
+            --night: #2B2358;
+            --lavender: #C1B7FF;
+            --peach: #FFBF6E;
+            --bolt: #F6FFDB;
+            --sky: #CDE4E1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--cream);
+            color: var(--earth);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--almost-white);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(32, 21, 21, 0.1);
+        }
+
+        h1 {
+            color: var(--zap-orange);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        #name-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: 2px solid var(--earth);
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: var(--almost-white);
+            color: var(--earth);
+        }
+
+        #name-input:focus {
+            outline: none;
+            border-color: var(--zap-orange);
+            box-shadow: 0 0 0 3px rgba(255, 79, 0, 0.1);
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--zap-orange);
+            color: var(--almost-white);
+        }
+
+        .btn-primary:hover {
+            background-color: #e64500;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: var(--almost-white);
+            color: var(--earth);
+            border: 2px solid var(--earth);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--earth);
+            color: var(--almost-white);
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .wheel-section {
+            display: flex;
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+        }
+
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        #wheel:hover {
+            transform: scale(1.02);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid var(--zap-orange);
+            z-index: 10;
+        }
+
+        .names-list {
+            margin-top: 30px;
+        }
+
+        .names-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: var(--earth);
+            font-size: 1.5em;
+        }
+
+        .names-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .name-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: var(--cream);
+            border-radius: 8px;
+            border: 1px solid rgba(32, 21, 21, 0.1);
+        }
+
+        .name-item.disabled {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .name-text {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .name-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .edit-btn, .delete-btn, .toggle-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .edit-btn {
+            background-color: var(--lavender);
+            color: var(--night);
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .toggle-btn {
+            background-color: var(--peach);
+            color: var(--earth);
+        }
+
+        .toggle-btn.enabled {
+            background-color: var(--moss);
+            color: var(--almost-white);
+        }
+
+        .result-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(32, 21, 21, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: var(--almost-white);
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(32, 21, 21, 0.3);
+        }
+
+        .modal-content h3 {
+            color: var(--zap-orange);
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .confetti {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--zap-orange);
+            animation: fall 3s linear forwards;
+        }
+
+        .confetti-piece:nth-child(2n) {
+            background-color: var(--lavender);
+        }
+
+        .confetti-piece:nth-child(3n) {
+            background-color: var(--peach);
+        }
+
+        .confetti-piece:nth-child(4n) {
+            background-color: var(--sky);
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .wheel-container {
+                width: 300px;
+                height: 300px;
+            }
+
+            .names-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wheel of Names</h1>
+
+        <div class="input-section">
+            <input type="text" id="name-input" placeholder="Enter a name..." maxlength="30">
+            <button id="add-btn" class="btn-primary">Add Name</button>
+        </div>
+
+        <div class="wheel-section">
+            <div class="wheel-container">
+                <div class="pointer"></div>
+                <svg id="wheel" viewBox="0 0 400 400">
+                    <!-- Wheel slices will be dynamically generated here -->
+                </svg>
+            </div>
+        </div>
+
+        <div class="names-list">
+            <div class="names-header">
+                <h2>Names List</h2>
+                <button id="spin-btn" class="btn-primary">Spin the Wheel!</button>
+            </div>
+            <div id="names-grid" class="names-grid">
+                <!-- Names will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="result-modal">
+        <div class="modal-content">
+            <h3 id="result-name"></h3>
+            <p>What would you like to do with this name?</p>
+            <div class="modal-buttons">
+                <button id="keep-btn" class="btn-primary">Keep</button>
+                <button id="disable-btn" class="btn-secondary">Disable</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let names = [];
+        let enabledNames = [];
+        let isSpinning = false;
+        let currentRotation = 0;
+
+        // DOM elements
+        const nameInput = document.getElementById('name-input');
+        const addBtn = document.getElementById('add-btn');
+        const spinBtn = document.getElementById('spin-btn');
+        const wheel = document.getElementById('wheel');
+        const namesGrid = document.getElementById('names-grid');
+        const resultModal = document.getElementById('result-modal');
+        const resultName = document.getElementById('result-name');
+        const keepBtn = document.getElementById('keep-btn');
+        const disableBtn = document.getElementById('disable-btn');
+
+        // Colors for wheel slices
+        const sliceColors = ['#1F3121', '#2B2358', '#C1B7FF', '#FFBF6E', '#F6FFDB', '#CDE4E1'];
+
+        // Initialize
+        loadFromLocalStorage();
+        renderNamesList();
+        drawWheel();
+
+        // Event listeners
+        addBtn.addEventListener('click', addName);
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addName();
+        });
+
+        spinBtn.addEventListener('click', spinWheel);
+        keepBtn.addEventListener('click', () => hideModal());
+        disableBtn.addEventListener('click', disableSelectedName);
+
+        // Functions
+        function addName() {
+            const name = nameInput.value.trim();
+            if (name && !names.includes(name)) {
+                names.push(name);
+                enabledNames.push(name);
+                nameInput.value = '';
+                saveToLocalStorage();
+                renderNamesList();
+                drawWheel();
+            }
+        }
+
+        function renderNamesList() {
+            namesGrid.innerHTML = '';
+
+            names.forEach((name, index) => {
+                const nameItem = document.createElement('div');
+                nameItem.className = `name-item ${!enabledNames.includes(name) ? 'disabled' : ''}`;
+
+                nameItem.innerHTML = `
+                    <span class="name-text">${name}</span>
+                    <div class="name-controls">
+                        <button class="edit-btn" onclick="editName(${index})">Edit</button>
+                        <button class="delete-btn" onclick="deleteName(${index})">Delete</button>
+                        <button class="toggle-btn ${enabledNames.includes(name) ? 'enabled' : ''}" onclick="toggleName(${index})">
+                            ${enabledNames.includes(name) ? 'Enabled' : 'Disabled'}
+                        </button>
+                    </div>
+                `;
+
+                namesGrid.appendChild(nameItem);
+            });
+        }
+
+        function editName(index) {
+            const newName = prompt('Edit name:', names[index]);
+            if (newName && newName.trim() && !names.includes(newName.trim())) {
+                const oldName = names[index];
+                names[index] = newName.trim();
+
+                // Update enabled names list
+                const enabledIndex = enabledNames.indexOf(oldName);
+                if (enabledIndex !== -1) {
+                    enabledNames[enabledIndex] = newName.trim();
+                }
+
+                saveToLocalStorage();
+                renderNamesList();
+                drawWheel();
+            }
+        }
+
+        function deleteName(index) {
+            if (confirm(`Are you sure you want to delete "${names[index]}"?`)) {
+                const name = names[index];
+                names.splice(index, 1);
+
+                // Remove from enabled names if present
+                const enabledIndex = enabledNames.indexOf(name);
+                if (enabledIndex !== -1) {
+                    enabledNames.splice(enabledIndex, 1);
+                }
+
+                saveToLocalStorage();
+                renderNamesList();
+                drawWheel();
+            }
+        }
+
+        function toggleName(index) {
+            const name = names[index];
+            const enabledIndex = enabledNames.indexOf(name);
+
+            if (enabledIndex !== -1) {
+                enabledNames.splice(enabledIndex, 1);
+            } else {
+                enabledNames.push(name);
+            }
+
+            saveToLocalStorage();
+            renderNamesList();
+            drawWheel();
+        }
+
+        function drawWheel() {
+            const activeNames = enabledNames.filter(name => names.includes(name));
+
+            if (activeNames.length === 0) {
+                wheel.innerHTML = '<circle cx="200" cy="200" r="180" fill="#FFF3E6" stroke="#201515" stroke-width="4"/><text x="200" y="200" text-anchor="middle" fill="#201515" font-size="18" font-weight="bold">Add names to spin!</text>';
+                return;
+            }
+
+            const centerX = 200;
+            const centerY = 200;
+            const radius = 180;
+            const sliceAngle = 360 / activeNames.length;
+
+            let svgContent = '';
+
+            activeNames.forEach((name, index) => {
+                const startAngle = (index * sliceAngle) * Math.PI / 180;
+                const endAngle = ((index + 1) * sliceAngle) * Math.PI / 180;
+
+                const x1 = centerX + radius * Math.cos(startAngle);
+                const y1 = centerY + radius * Math.sin(startAngle);
+                const x2 = centerX + radius * Math.cos(endAngle);
+                const y2 = centerY + radius * Math.sin(endAngle);
+
+                const largeArcFlag = sliceAngle > 180 ? 1 : 0;
+
+                const pathData = `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+
+                const color = sliceColors[index % sliceColors.length];
+                const textColor = isLightColor(color) ? '#201515' : '#FFFDF9';
+
+                // Calculate text position
+                const textAngle = (index * sliceAngle + sliceAngle / 2) * Math.PI / 180;
+                const textRadius = radius * 0.7;
+                const textX = centerX + textRadius * Math.cos(textAngle);
+                const textY = centerY + textRadius * Math.sin(textAngle);
+
+                svgContent += `<path d="${pathData}" fill="${color}" stroke="#FFFDF9" stroke-width="2"/>`;
+                svgContent += `<text x="${textX}" y="${textY}" text-anchor="middle" fill="${textColor}" font-size="14" font-weight="bold" transform="rotate(${(index * sliceAngle + sliceAngle / 2)}, ${textX}, ${textY})">${truncateText(name, 12)}</text>`;
+            });
+
+            wheel.innerHTML = svgContent;
+        }
+
+        function isLightColor(color) {
+            const hex = color.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            return brightness > 128;
+        }
+
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength - 3) + '...';
+        }
+
+        function spinWheel() {
+            if (isSpinning || enabledNames.length === 0) return;
+
+            isSpinning = true;
+            spinBtn.disabled = true;
+            spinBtn.textContent = 'Spinning...';
+
+            // Calculate random spin
+            const spins = 5 + Math.random() * 5; // 5-10 full rotations
+            const randomAngle = Math.random() * 360;
+            const totalRotation = currentRotation + spins * 360 + randomAngle;
+
+            // Apply spin animation
+            wheel.style.transform = `rotate(${totalRotation}deg)`;
+            wheel.style.transition = 'transform 3s cubic-bezier(0.23, 1, 0.32, 1)';
+
+            currentRotation = totalRotation;
+
+            setTimeout(() => {
+                // Calculate which name was selected
+                const normalizedAngle = (360 - (totalRotation % 360)) % 360;
+                const activeNames = enabledNames.filter(name => names.includes(name));
+                const sliceAngle = 360 / activeNames.length;
+                const selectedIndex = Math.floor(normalizedAngle / sliceAngle);
+                const selectedName = activeNames[selectedIndex];
+
+                // Show result modal
+                resultName.textContent = selectedName;
+                resultModal.style.display = 'flex';
+
+                // Trigger confetti
+                createConfetti();
+
+                isSpinning = false;
+                spinBtn.disabled = false;
+                spinBtn.textContent = 'Spin the Wheel!';
+            }, 3000);
+        }
+
+        function hideModal() {
+            resultModal.style.display = 'none';
+        }
+
+        function disableSelectedName() {
+            const selectedName = resultName.textContent;
+            const enabledIndex = enabledNames.indexOf(selectedName);
+            if (enabledIndex !== -1) {
+                enabledNames.splice(enabledIndex, 1);
+                saveToLocalStorage();
+                renderNamesList();
+                drawWheel();
+            }
+            hideModal();
+        }
+
+        function createConfetti() {
+            const confettiContainer = document.createElement('div');
+            confettiContainer.className = 'confetti';
+            document.body.appendChild(confettiContainer);
+
+            for (let i = 0; i < 50; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + 'vw';
+                piece.style.animationDelay = Math.random() * 2 + 's';
+                piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+                confettiContainer.appendChild(piece);
+            }
+
+            setTimeout(() => {
+                document.body.removeChild(confettiContainer);
+            }, 4000);
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('wheelNames', JSON.stringify(names));
+            localStorage.setItem('enabledNames', JSON.stringify(enabledNames));
+        }
+
+        function loadFromLocalStorage() {
+            const savedNames = localStorage.getItem('wheelNames');
+            const savedEnabled = localStorage.getItem('enabledNames');
+
+            if (savedNames) {
+                names = JSON.parse(savedNames);
+            }
+
+            if (savedEnabled) {
+                enabledNames = JSON.parse(savedEnabled);
+            } else {
+                enabledNames = [...names]; // If no enabled list, enable all names
+            }
+        }
+    </script>
+</body>
+</html>
