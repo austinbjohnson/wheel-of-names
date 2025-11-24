@@ -41,3 +41,9 @@ This rubric defines the pass/fail criteria for evaluating the "Wheel of Names" i
 *   **Registry:** New runs must be appended to the `benchmarkData` array in `data.js`.
 *   **Versioning:** Do not overwrite previous evaluation files; keep a historical log.
 
+## 6. Testing & Verification
+*   **Browser Checks:** Verification if automated browser checks were executed. Must be flagged if not run.
+*   **E2E Test Status:** Report pass/fail/incomplete status for End-to-End flows.
+    *   *Requirement:* If E2E tests could not be completed, this must be explicitly noted as "Incomplete".
+
+
