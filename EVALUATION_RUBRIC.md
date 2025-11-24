@@ -35,3 +35,7 @@ This rubric defines the pass/fail criteria for evaluating the "Wheel of Names" i
 *   **One Item:** Does it handle a single item list?
 *   **Zero Items:** Does it crash or show a meaningful empty state?
 
+## 5. Reporting Standards
+*   **File Naming:** All evaluation results must be saved as a new file with the current date prefix: `YYYYMMDD_EVALUATION_RESULTS.md` (e.g., `20251124_EVALUATION_RESULTS.md`).
+*   **Versioning:** Do not overwrite previous evaluation files; keep a historical log.
+
