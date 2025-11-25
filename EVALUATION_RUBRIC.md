@@ -15,9 +15,12 @@ This rubric defines the pass/fail criteria for evaluating the "Wheel of Names" i
 ## 2. Core Functionality (Spinner)
 *   **Spin Action:** Smooth animation that decelerates naturally.
 *   **Indicator:** A clear pointer/marker exists and "points" into the wheel.
-*   **Alignment:** The wheel stops with the selected name aligned with the indicator.
-    *   *Critical Fail:* If the wheel stops between lines or points to the wrong name.
-*   **Outcome:** The result announced matches the slice under the indicator.
+*   **Alignment & Logic Check:**
+    *   **Visual Alignment:** The wheel must stop with the selected name clearly aligned under the indicator.
+        *   *Critical Fail:* If the wheel stops between lines (random rotation).
+    *   **Outcome Verification:** The announced winner MUST match the name physically under the pointer.
+        *   *Critical Fail:* If the announced winner is different from the one under the pointer (e.g., 180° opposite due to Top/Bottom logic mismatch).
+    *   **Code Verification (If Mismatch Suspected):** Check if the visual pointer position (e.g., Top) matches the angle calculation in JS (e.g., Top usually requires offsetting by `-Math.PI/2` or `270` degrees).
 
 ## 3. Interaction & Flow
 *   **Post-Spin Dialog:**
