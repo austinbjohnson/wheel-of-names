@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Names</title>
+    <style>
+        :root {
+            --zap-orange: #FF4F00;
+            --earth: #201515;
+            --cream: #FFF3E6;
+            --almost-white: #FFFDF9;
+            --moss: #1F3121;
+            --night: #2B2358;
+            --lavender: #C1B7FF;
+            --peach: #FFBF6E;
+            --bolt: #F6FFDB;
+            --sky: #CDE4E1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, var(--almost-white) 100%);
+            color: var(--earth);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--zap-orange);
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(255, 79, 0, 0.2);
+        }
+
+        .subtitle {
+            color: var(--earth);
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .names-panel {
+            background: var(--almost-white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(32, 21, 21, 0.1);
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--zap-orange);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .add-name-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .add-name-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--earth);
+            border-radius: 8px;
+            font-size: 1rem;
+            color: var(--earth);
+            background: white;
+        }
+
+        .add-name-input:focus {
+            outline: none;
+            border-color: var(--zap-orange);
+            box-shadow: 0 0 0 3px rgba(255, 79, 0, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--zap-orange);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #E64500;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 79, 0, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--earth);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d1f1f;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .names-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .names-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .names-list::-webkit-scrollbar-track {
+            background: var(--cream);
+            border-radius: 4px;
+        }
+
+        .names-list::-webkit-scrollbar-thumb {
+            background: var(--zap-orange);
+            border-radius: 4px;
+        }
+
+        .name-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .name-item:hover {
+            border-color: var(--zap-orange);
+            box-shadow: 0 2px 8px rgba(255, 79, 0, 0.1);
+        }
+
+        .name-item.disabled {
+            opacity: 0.5;
+            background: var(--cream);
+        }
+
+        .name-text {
+            flex: 1;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .name-item.disabled .name-text {
+            text-decoration: line-through;
+        }
+
+        .name-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            background: transparent;
+            border: 2px solid var(--earth);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--earth);
+            transition: all 0.2s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon:hover {
+            background: var(--zap-orange);
+            border-color: var(--zap-orange);
+            color: white;
+        }
+
+        .wheel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .wheel-wrapper {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            max-width: 100%;
+        }
+
+        #wheelCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 8px 32px rgba(32, 21, 21, 0.2);
+            transition: transform 0.1s ease-out;
+        }
+
+        .spin-button {
+            padding: 1.25rem 3rem;
+            font-size: 1.25rem;
+            background: var(--zap-orange);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 79, 0, 0.4);
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .spin-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 6px 30px rgba(255, 79, 0, 0.5);
+        }
+
+        .spin-button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .spin-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .selected-indicator {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 30px solid var(--zap-orange);
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            z-index: 10;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(32, 21, 21, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-backdrop.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-title {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--zap-orange);
+            margin-bottom: 1rem;
+        }
+
+        .modal-message {
+            font-size: 1.5rem;
+            color: var(--earth);
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn-modal {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+        }
+
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--zap-orange);
+            animation: confettiFall linear;
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--earth);
+            opacity: 0.6;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎡 Wheel of Names</h1>
+            <p class="subtitle">Spin the wheel and let fate decide!</p>
+        </header>
+
+        <div class="main-content">
+            <div class="names-panel">
+                <h2 class="panel-title">📝 Manage Names</h2>
+                <form class="add-name-form" id="addNameForm">
+                    <input 
+                        type="text" 
+                        class="add-name-input" 
+                        id="nameInput" 
+                        placeholder="Enter a name..."
+                        required
+                    >
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </form>
+                <ul class="names-list" id="namesList">
+                    <li class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <div>Add names to get started!</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="wheel-container">
+                <div class="wheel-wrapper">
+                    <div class="selected-indicator"></div>
+                    <canvas id="wheelCanvas" width="500" height="500"></canvas>
+                </div>
+                <button class="spin-button" id="spinButton" disabled>Spin the Wheel!</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="resultModal">
+        <div class="modal">
+            <h2 class="modal-title">🎉 Winner!</h2>
+            <p class="modal-message" id="winnerName"></p>
+            <div class="modal-actions">
+                <button class="btn btn-primary btn-modal" id="keepButton">Keep</button>
+                <button class="btn btn-secondary btn-modal" id="disableButton">Disable</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <script>
+        // State
+        let names = [];
+        let isSpinning = false;
+        let selectedIndex = -1;
+        let rotation = 0;
+
+        // Color palette for wheel slices
+        const colors = [
+            { bg: '#1F3121', text: '#FFFDF9' }, // Moss
+            { bg: '#2B2358', text: '#FFFDF9' }, // Night
+            { bg: '#C1B7FF', text: '#201515' }, // Lavender
+            { bg: '#FFBF6E', text: '#201515' }, // Peach
+            { bg: '#F6FFDB', text: '#201515' }, // Bolt
+            { bg: '#CDE4E1', text: '#201515' }, // Sky
+        ];
+
+        // DOM Elements
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const nameInput = document.getElementById('nameInput');
+        const addNameForm = document.getElementById('addNameForm');
+        const namesList = document.getElementById('namesList');
+        const spinButton = document.getElementById('spinButton');
+        const resultModal = document.getElementById('resultModal');
+        const winnerName = document.getElementById('winnerName');
+        const keepButton = document.getElementById('keepButton');
+        const disableButton = document.getElementById('disableButton');
+        const confettiContainer = document.getElementById('confettiContainer');
+
+        // Initialize
+        loadNames();
+        renderWheel();
+        updateSpinButton();
+
+        // Event Listeners
+        addNameForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = nameInput.value.trim();
+            if (name) {
+                addName(name);
+                nameInput.value = '';
+                nameInput.focus();
+            }
+        });
+
+        spinButton.addEventListener('click', spinWheel);
+        keepButton.addEventListener('click', () => closeModal());
+        disableButton.addEventListener('click', () => {
+            if (selectedIndex >= 0) {
+                toggleNameEnabled(selectedIndex);
+                closeModal();
+            }
+        });
+
+        resultModal.addEventListener('click', (e) => {
+            if (e.target === resultModal) {
+                closeModal();
+            }
+        });
+
+        // Functions
+        function loadNames() {
+            const saved = localStorage.getItem('wheelOfNames');
+            if (saved) {
+                names = JSON.parse(saved);
+            }
+            renderNamesList();
+        }
+
+        function saveNames() {
+            localStorage.setItem('wheelOfNames', JSON.stringify(names));
+        }
+
+        function addName(name) {
+            names.push({ name, enabled: true });
+            saveNames();
+            renderNamesList();
+            renderWheel();
+            updateSpinButton();
+        }
+
+        function deleteName(index) {
+            names.splice(index, 1);
+            saveNames();
+            renderNamesList();
+            renderWheel();
+            updateSpinButton();
+        }
+
+        function toggleNameEnabled(index) {
+            names[index].enabled = !names[index].enabled;
+            saveNames();
+            renderNamesList();
+            renderWheel();
+            updateSpinButton();
+        }
+
+        function renderNamesList() {
+            if (names.length === 0) {
+                namesList.innerHTML = `
+                    <li class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <div>Add names to get started!</div>
+                    </li>
+                `;
+                return;
+            }
+
+            namesList.innerHTML = names.map((item, index) => `
+                <li class="name-item ${!item.enabled ? 'disabled' : ''}">
+                    <span class="name-text">${escapeHtml(item.name)}</span>
+                    <div class="name-actions">
+                        <button 
+                            class="btn-icon" 
+                            onclick="toggleNameEnabled(${index})"
+                            title="${item.enabled ? 'Disable' : 'Enable'}"
+                        >
+                            ${item.enabled ? '✓' : '✗'}
+                        </button>
+                        <button 
+                            class="btn-icon" 
+                            onclick="deleteName(${index})"
+                            title="Delete"
+                        >
+                            🗑
+                        </button>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        function renderWheel() {
+            const enabledNames = names.filter(n => n.enabled);
+            if (enabledNames.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#FFF3E6';
+                ctx.beginPath();
+                ctx.arc(250, 250, 250, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#201515';
+                ctx.font = 'bold 24px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Add names to spin!', 250, 250);
+                return;
+            }
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 240;
+            const anglePerSlice = (Math.PI * 2) / enabledNames.length;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw slices
+            enabledNames.forEach((item, index) => {
+                const startAngle = index * anglePerSlice - Math.PI / 2 + rotation;
+                const endAngle = (index + 1) * anglePerSlice - Math.PI / 2 + rotation;
+                const colorIndex = index % colors.length;
+                const color = colors[colorIndex];
+
+                // Draw slice
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = color.bg;
+                ctx.fill();
+                ctx.strokeStyle = '#201515';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw text
+                const textAngle = startAngle + anglePerSlice / 2;
+                const textX = centerX + Math.cos(textAngle) * (radius * 0.65);
+                const textY = centerY + Math.sin(textAngle) * (radius * 0.65);
+
+                ctx.save();
+                ctx.translate(textX, textY);
+                ctx.rotate(textAngle + Math.PI / 2);
+                ctx.fillStyle = color.text;
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // Truncate long names
+                let displayName = item.name;
+                if (displayName.length > 15) {
+                    displayName = displayName.substring(0, 12) + '...';
+                }
+                
+                ctx.fillText(displayName, 0, 0);
+                ctx.restore();
+            });
+
+            // Draw center circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 50, 0, Math.PI * 2);
+            ctx.fillStyle = '#FF4F00';
+            ctx.fill();
+            ctx.strokeStyle = '#201515';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('SPIN', centerX, centerY);
+        }
+
+        function spinWheel() {
+            const enabledNames = names.filter(n => n.enabled);
+            if (enabledNames.length === 0 || isSpinning) return;
+
+            isSpinning = true;
+            spinButton.disabled = true;
+
+            // Random spin: 3-5 full rotations + random angle
+            const spins = 3 + Math.random() * 2;
+            const randomAngle = Math.random() * Math.PI * 2;
+            const totalRotation = spins * Math.PI * 2 + randomAngle;
+
+            const startRotation = rotation;
+            const endRotation = startRotation + totalRotation;
+            const duration = 3000; // 3 seconds
+            const startTime = Date.now();
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function (ease-out)
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                rotation = startRotation + (endRotation - startRotation) * easeOut;
+
+                renderWheel();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Calculate winner
+                    const normalizedRotation = ((rotation % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+                    const anglePerSlice = (Math.PI * 2) / enabledNames.length;
+                    // Top is at -90 degrees (or 270 degrees)
+                    const topAngle = (Math.PI * 2 - Math.PI / 2) % (Math.PI * 2);
+                    const relativeAngle = (topAngle - normalizedRotation + Math.PI * 2) % (Math.PI * 2);
+                    selectedIndex = names.findIndex(n => {
+                        if (!n.enabled) return false;
+                        const index = enabledNames.indexOf(n);
+                        const sliceStart = index * anglePerSlice;
+                        const sliceEnd = (index + 1) * anglePerSlice;
+                        return relativeAngle >= sliceStart && relativeAngle < sliceEnd;
+                    });
+
+                    if (selectedIndex >= 0) {
+                        setTimeout(() => {
+                            showResult();
+                            triggerConfetti();
+                        }, 500);
+                    }
+
+                    isSpinning = false;
+                    updateSpinButton();
+                }
+            }
+
+            animate();
+        }
+
+        function showResult() {
+            if (selectedIndex >= 0) {
+                winnerName.textContent = names[selectedIndex].name;
+                resultModal.classList.add('active');
+            }
+        }
+
+        function closeModal() {
+            resultModal.classList.remove('active');
+            selectedIndex = -1;
+        }
+
+        function triggerConfetti() {
+            const confettiCount = 100;
+            const confettiColors = ['#FF4F00', '#1F3121', '#2B2358', '#C1B7FF', '#FFBF6E', '#F6FFDB', '#CDE4E1'];
+
+            for (let i = 0; i < confettiCount; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.background = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    confettiContainer.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 20);
+            }
+        }
+
+        function updateSpinButton() {
+            const enabledCount = names.filter(n => n.enabled).length;
+            spinButton.disabled = enabledCount === 0 || isSpinning;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Make functions available globally for onclick handlers
+        window.toggleNameEnabled = toggleNameEnabled;
+        window.deleteName = deleteName;
+    </script>
+</body>
+</html>
+
+
