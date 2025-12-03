@@ -285,7 +285,7 @@
 
         <div class="utility-links">
             <button class="utility-btn" onclick="openModal()">📊 View Evaluation Results</button>
-            <button class="utility-btn" onclick="window.open('prompt-oneShot-wON.md', '_blank')">📝 View Prompt</button>
+            <button class="utility-btn" id="viewPromptBtn" onclick="viewPrompt()">📝 View Prompt</button>
         </div>
     </header>
 
@@ -347,6 +347,7 @@
             }
 
             renderUI();
+            updatePromptButton();
         }
 
         function toggleModel(id) {
@@ -425,6 +426,16 @@
             if (e.target === document.getElementById('resultsModal') || e.target.classList.contains('modal-close')) {
                 document.getElementById('resultsModal').classList.remove('active');
             }
+        }
+
+        function viewPrompt() {
+            const version = currentRun.promptVersion || 'v1';
+            window.open(`prompts/${version}.md`, '_blank');
+        }
+
+        function updatePromptButton() {
+            const version = currentRun.promptVersion || 'v1';
+            document.getElementById('viewPromptBtn').textContent = `📝 View Prompt (${version})`;
         }
 
         // Start
