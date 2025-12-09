@@ -6,6 +6,7 @@ window.benchmarkData = [
     {
         id: '20251124_1505',
         timestamp: '2025-11-24 15:05',
+        promptVersion: 'v1',
         evalFile: 'evaluations/20251124_1505_results.md',
         models: [
             { 
@@ -51,6 +52,7 @@ window.benchmarkData = [
     {
         id: '20251124_1222',
         timestamp: '2025-11-24 12:22',
+        promptVersion: 'v1',
         evalFile: 'evaluations/20251124_1222_results.md',
         models: [
             { 
@@ -89,6 +91,7 @@ window.benchmarkData = [
     {
         id: '20251124_1100',
         timestamp: '2025-11-24 11:00',
+        promptVersion: 'v1',
         evalFile: 'evaluations/20251124_1100_results.md',
         models: [
             { 

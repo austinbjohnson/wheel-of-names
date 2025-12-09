@@ -45,7 +45,35 @@ This rubric defines the pass/fail criteria for evaluating the "Wheel of Names" i
 *   **Registry:** New runs must be appended to the `benchmarkData` array in `data.js`.
 *   **Versioning:** Do not overwrite previous evaluation files; keep a historical log.
 
-## 6. Testing & Verification
+## 6. Prompt Versioning
+*   **Location:** All prompts are stored in the `prompts/` directory with versioned filenames.
+*   **Naming Convention:** `prompts/v{N}.md` (e.g., `v1.md`, `v2.md`).
+*   **Required Fields:** Each run in `data.js` must include a `promptVersion` field referencing the version used.
+    ```javascript
+    {
+        id: '20251124_1505',
+        timestamp: '2025-11-24 15:05',
+        promptVersion: 'v1',  // REQUIRED
+        evalFile: 'evaluations/20251124_1505_results.md',
+        models: [...]
+    }
+    ```
+*   **Creating a New Version:**
+    1. Copy the latest prompt to a new file: `prompts/v{N+1}.md`
+    2. Make your changes to the new file
+    3. Add a metadata header with version, date, and description of changes
+    4. All subsequent runs must reference the new version
+*   **Prompt File Format:** Each prompt file should include a metadata header:
+    ```markdown
+    <!--
+    Prompt Version: v1
+    Created: YYYY-MM-DD
+    Description: Brief description of this prompt version
+    Changes from previous: (if applicable)
+    -->
+    ```
+
+## 7. Testing & Verification
 *   **Browser Checks:** Verification if automated browser checks were executed. Must be flagged if not run.
 *   **E2E Test Status:** Report pass/fail/incomplete status for End-to-End flows.
     *   *Requirement:* If E2E tests could not be completed, this must be explicitly noted as "Incomplete".
