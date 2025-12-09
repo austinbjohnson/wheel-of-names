@@ -12,6 +12,11 @@ window.promptRegistry = {
         name: 'No Styling',
         file: 'prompts/v2.md',
         description: 'No styling guidelines - tests model default aesthetics'
+    },
+    'v3': {
+        name: 'Dark Mode',
+        file: 'prompts/v3.md',
+        description: 'Dark mode styling requirements'
     }
 };
 
