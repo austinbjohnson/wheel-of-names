@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Names - Dark Mode</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background-color: #252525;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            color: #00d4ff;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 16px;
+            background-color: #1a1a1a;
+            border: 2px solid #00d4ff;
+            color: #ffffff;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        input::placeholder {
+            color: #888888;
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: #00d4ff;
+            color: #1a1a1a;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #00b8d4;
+        }
+
+        .names-list {
+            margin: 30px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .name-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: #1a1a1a;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #ff006e;
+        }
+
+        .name-item.disabled {
+            opacity: 0.5;
+            border-left-color: #666666;
+        }
+
+        .name-item-text {
+            flex: 1;
+        }
+
+        .name-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            background-color: #ff006e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .btn-small.disable {
+            background-color: #666666;
+        }
+
+        .btn-small:hover {
+            opacity: 0.8;
+        }
+
+        .wheel-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn-spin {
+            padding: 15px 40px;
+            background-color: #00d4ff;
+            color: #1a1a1a;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-spin:disabled {
+            background-color: #666666;
+            cursor: not-allowed;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #252525;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 500px;
+            border: 2px solid #00d4ff;
+        }
+
+        .modal-content h2 {
+            font-size: 2em;
+            color: #00d4ff;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .modal-buttons button {
+            padding: 12px 30px;
+            font-size: 1em;
+        }
+
+        .confetti {
+            position: fixed;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎡 Wheel of Names</h1>
+        
+        <div class="input-section">
+            <input type="text" id="nameInput" placeholder="Enter a name..." />
+            <button onclick="addName()">Add Name</button>
+        </div>
+
+        <div class="names-list" id="namesList"></div>
+
+        <div class="wheel-container">
+            <canvas id="wheelCanvas" width="400" height="400"></canvas>
+        </div>
+
+        <div class="controls">
+            <button class="btn-spin" id="spinBtn" onclick="spinWheel()">SPIN THE WHEEL</button>
+        </div>
+    </div>
+
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <h2>🎉 Winner!</h2>
+            <p id="winnerText" style="font-size: 1.5em; color: #ff006e; margin: 20px 0;"></p>
+            <div class="modal-buttons">
+                <button onclick="keepWinner()">Keep Winner</button>
+                <button onclick="disableWinner()">Disable from Wheel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let names = [];
+        let wheelCanvas = document.getElementById('wheelCanvas');
+        let ctx = wheelCanvas.getContext('2d');
+        let isSpinning = false;
+        let selectedWinner = null;
+
+        function addName() {
+            const input = document.getElementById('nameInput');
+            const name = input.value.trim();
+            if (name) {
+                names.push({ text: name, enabled: true });
+                input.value = '';
+                updateList();
+                drawWheel();
+            }
+        }
+
+        function updateList() {
+            const list = document.getElementById('namesList');
+            list.innerHTML = names.map((name, idx) => `
+                <div class="name-item ${!name.enabled ? 'disabled' : ''}">
+                    <span class="name-item-text">${name.text}</span>
+                    <div class="name-actions">
+                        <button class="btn-small" onclick="removeName(${idx})">Remove</button>
+                        <button class="btn-small ${name.enabled ? 'disable' : ''}" onclick="toggleName(${idx})">
+                            ${name.enabled ? 'Disable' : 'Enable'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function removeName(idx) {
+            names.splice(idx, 1);
+            updateList();
+            drawWheel();
+        }
+
+        function toggleName(idx) {
+            names[idx].enabled = !names[idx].enabled;
+            updateList();
+            drawWheel();
+        }
+
+        function drawWheel() {
+            const enabledNames = names.filter(n => n.enabled);
+            const centerX = wheelCanvas.width / 2;
+            const centerY = wheelCanvas.height / 2;
+            const radius = 150;
+
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+
+            if (enabledNames.length === 0) {
+                ctx.fillStyle = '#888888';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Add names to create the wheel', centerX, centerY);
+                return;
+            }
+
+            const sliceAngle = (Math.PI * 2) / enabledNames.length;
+            const colors = ['#ff006e', '#00d4ff', '#00ff88', '#ffaa00', '#ff0099', '#00ccff'];
+
+            enabledNames.forEach((name, idx) => {
+                const startAngle = idx * sliceAngle;
+                const endAngle = startAngle + sliceAngle;
+                
+                ctx.fillStyle = colors[idx % colors.length];
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.lineTo(centerX, centerY);
+                ctx.fill();
+
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                const textAngle = startAngle + sliceAngle / 2;
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(textAngle);
+                ctx.fillStyle = '#1a1a1a';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'right';
+                ctx.fillText(name.text, radius - 20, 5);
+                ctx.restore();
+            });
+
+            // Draw center circle
+            ctx.fillStyle = '#00d4ff';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function spinWheel() {
+            const enabledNames = names.filter(n => n.enabled);
+            if (enabledNames.length === 0 || isSpinning) return;
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            const duration = 3000;
+            const start = Date.now();
+            const randomWinner = Math.floor(Math.random() * enabledNames.length);
+            selectedWinner = enabledNames[randomWinner];
+
+            function animate() {
+                const elapsed = Date.now() - start;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Spin animation (simplified)
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    showWinner();
+                    triggerConfetti();
+                }
+            }
+
+            animate();
+        }
+
+        function showWinner() {
+            document.getElementById('winnerText').textContent = selectedWinner.text;
+            document.getElementById('resultModal').classList.add('show');
+            isSpinning = false;
+            document.getElementById('spinBtn').disabled = false;
+        }
+
+        function keepWinner() {
+            document.getElementById('resultModal').classList.remove('show');
+        }
+
+        function disableWinner() {
+            const idx = names.findIndex(n => n.text === selectedWinner.text);
+            if (idx >= 0) {
+                names[idx].enabled = false;
+                updateList();
+                drawWheel();
+            }
+            document.getElementById('resultModal').classList.remove('show');
+        }
+
+        function triggerConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * window.innerWidth + 'px';
+                confetti.style.top = '-10px';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = ['#ff006e', '#00d4ff', '#00ff88', '#ffaa00'][Math.floor(Math.random() * 4)];
+                confetti.style.borderRadius = '50%';
+                document.body.appendChild(confetti);
+
+                const duration = 2000 + Math.random() * 1000;
+                let startTime = Date.now();
+                function fall() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = elapsed / duration;
+                    if (progress < 1) {
+                        confetti.style.top = (Math.random() * window.innerHeight) + 'px';
+                        confetti.style.opacity = 1 - progress;
+                        requestAnimationFrame(fall);
+                    } else {
+                        confetti.remove();
+                    }
+                }
+                fall();
+            }
+        }
+
+        // Initialize
+        drawWheel();
+    </script>
+</body>
+</html>

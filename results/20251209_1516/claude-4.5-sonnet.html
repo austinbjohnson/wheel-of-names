@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Names - Dark Mode</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 20px 0;
+            font-size: 2.5em;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .names-panel {
+            background: #2a2a2a;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .names-panel h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #3a3a3a;
+            border-radius: 8px;
+            background: #1a1a1a;
+            color: #ffffff;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-spin {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            font-size: 18px;
+            padding: 15px 40px;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .btn-spin:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-spin:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .names-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .name-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 2px solid #3a3a3a;
+            transition: all 0.3s;
+        }
+
+        .name-item.disabled {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+
+        .name-item:hover {
+            border-color: #667eea;
+        }
+
+        .name-text {
+            flex: 1;
+        }
+
+        .name-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .btn-toggle {
+            background: #4a5568;
+            color: white;
+        }
+
+        .btn-toggle.enabled {
+            background: #48bb78;
+        }
+
+        .btn-edit {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #f56565;
+            color: white;
+        }
+
+        .wheel-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            margin: 20px 0;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #f5576c;
+            filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+            z-index: 10;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #2a2a2a;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .modal-content h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .winner-name {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #667eea;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn-keep {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-disable {
+            background: #ed8936;
+            color: white;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f0f;
+            position: absolute;
+            animation: confetti-fall 3s linear forwards;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .wheel-container {
+                width: 350px;
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🎡 Wheel of Names</h1>
+
+    <div class="container">
+        <div class="names-panel">
+            <h2>Manage Names</h2>
+            <div class="input-group">
+                <input type="text" id="nameInput" placeholder="Enter a name..." />
+                <button class="btn-add" onclick="addName()">Add</button>
+            </div>
+            <div class="names-list" id="namesList"></div>
+        </div>
+
+        <div class="wheel-panel">
+            <div class="wheel-container">
+                <div class="wheel-pointer"></div>
+                <canvas id="wheelCanvas" width="500" height="500"></canvas>
+            </div>
+            <button class="btn-spin" id="spinBtn" onclick="spinWheel()">Spin the Wheel!</button>
+        </div>
+    </div>
+
+    <div class="modal" id="winnerModal">
+        <div class="modal-content">
+            <h2>🎉 Winner! 🎉</h2>
+            <div class="winner-name" id="winnerName"></div>
+            <p>What would you like to do?</p>
+            <div class="modal-actions">
+                <button class="btn-keep" onclick="keepWinner()">Keep</button>
+                <button class="btn-disable" onclick="disableWinner()">Disable</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let names = [];
+        let currentWinner = null;
+        let isSpinning = false;
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#fd79a8', '#fdcb6e', '#74b9ff', '#a29bfe', '#00b894'];
+
+        function addName() {
+            const input = document.getElementById('nameInput');
+            const name = input.value.trim();
+            if (name && !names.find(n => n.text === name)) {
+                names.push({ text: name, enabled: true });
+                input.value = '';
+                updateDisplay();
+            }
+        }
+
+        document.getElementById('nameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addName();
+        });
+
+        function toggleName(index) {
+            names[index].enabled = !names[index].enabled;
+            updateDisplay();
+        }
+
+        function editName(index) {
+            const newName = prompt('Edit name:', names[index].text);
+            if (newName && newName.trim()) {
+                names[index].text = newName.trim();
+                updateDisplay();
+            }
+        }
+
+        function deleteName(index) {
+            if (confirm('Delete this name?')) {
+                names.splice(index, 1);
+                updateDisplay();
+            }
+        }
+
+        function updateDisplay() {
+            const list = document.getElementById('namesList');
+            list.innerHTML = names.map((name, i) => `
+                <div class="name-item ${!name.enabled ? 'disabled' : ''}">
+                    <span class="name-text">${name.text}</span>
+                    <div class="name-actions">
+                        <button class="btn-small btn-toggle ${name.enabled ? 'enabled' : ''}" onclick="toggleName(${i})">
+                            ${name.enabled ? 'Enabled' : 'Disabled'}
+                        </button>
+                        <button class="btn-small btn-edit" onclick="editName(${i})">Edit</button>
+                        <button class="btn-small btn-delete" onclick="deleteName(${i})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+
+            drawWheel(0);
+            updateSpinButton();
+        }
+
+        function updateSpinButton() {
+            const btn = document.getElementById('spinBtn');
+            const enabledNames = names.filter(n => n.enabled);
+            btn.disabled = enabledNames.length < 2 || isSpinning;
+        }
+
+        function drawWheel(rotation) {
+            const enabledNames = names.filter(n => n.enabled);
+            if (enabledNames.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2;
+            const sliceAngle = (2 * Math.PI) / enabledNames.length;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            enabledNames.forEach((name, i) => {
+                const startAngle = rotation + i * sliceAngle;
+                const endAngle = startAngle + sliceAngle;
+
+                // Draw slice
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+
+                // Draw border
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 18px Arial';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 4;
+                ctx.fillText(name.text, radius * 0.65, 5);
+                ctx.restore();
+            });
+
+            // Draw center circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
+            ctx.fillStyle = '#2a2a2a';
+            ctx.fill();
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+
+            const enabledNames = names.filter(n => n.enabled);
+            if (enabledNames.length < 2) return;
+
+            isSpinning = true;
+            updateSpinButton();
+
+            const spins = 5 + Math.random() * 5;
+            const targetRotation = spins * 2 * Math.PI + Math.random() * 2 * Math.PI;
+            const duration = 4000;
+            const startTime = Date.now();
+            const startRotation = 0;
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const currentRotation = startRotation + targetRotation * easeOut;
+
+                drawWheel(currentRotation);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    const sliceAngle = (2 * Math.PI) / enabledNames.length;
+                    const normalizedRotation = (currentRotation % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+                    const pointerAngle = (2 * Math.PI - normalizedRotation + Math.PI / 2) % (2 * Math.PI);
+                    const winnerIndex = Math.floor(pointerAngle / sliceAngle);
+                    currentWinner = enabledNames[winnerIndex];
+
+                    setTimeout(() => {
+                        showWinner();
+                        createConfetti();
+                    }, 500);
+                }
+            }
+
+            animate();
+        }
+
+        function showWinner() {
+            document.getElementById('winnerName').textContent = currentWinner.text;
+            document.getElementById('winnerModal').classList.add('active');
+        }
+
+        function keepWinner() {
+            document.getElementById('winnerModal').classList.remove('active');
+            isSpinning = false;
+            updateSpinButton();
+        }
+
+        function disableWinner() {
+            const nameIndex = names.findIndex(n => n.text === currentWinner.text);
+            if (nameIndex !== -1) {
+                names[nameIndex].enabled = false;
+            }
+            document.getElementById('winnerModal').classList.remove('active');
+            isSpinning = false;
+            updateDisplay();
+        }
+
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#fd79a8'];
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.top = '-10px';
+                    confetti.style.width = Math.random() * 10 + 5 + 'px';
+                    confetti.style.height = Math.random() * 10 + 5 + 'px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    confetti.style.animation = `confetti-fall ${2 + Math.random() * 2}s linear forwards`;
+                    confetti.style.zIndex = '9999';
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 30);
+            }
+        }
+
+        // Initialize with some default names
+        names = [
+            { text: 'Alice', enabled: true },
+            { text: 'Bob', enabled: true },
+            { text: 'Charlie', enabled: true },
+            { text: 'Diana', enabled: true },
+            { text: 'Eve', enabled: true }
+        ];
+        updateDisplay();
+    </script>
+</body>
+</html>
