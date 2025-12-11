@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wheel of Names — Midnight Edition</title>
+    <meta
+      name="description"
+      content="Dark mode Wheel of Names experience with live editing, confetti, and post-spin controls."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #03050c;
+        --bg-deep: #050915;
+        --panel: #0f1626;
+        --panel-raised: #151f33;
+        --panel-muted: #1c2539;
+        --text: #f5f7ff;
+        --muted: #93a0c3;
+        --accent: #7c5dff;
+        --accent-soft: #9a7dff;
+        --accent-2: #3dd598;
+        --danger: #ff5e75;
+        --border: rgba(255, 255, 255, 0.08);
+        --border-strong: rgba(255, 255, 255, 0.16);
+        --shadow: 0 40px 120px rgba(3, 5, 12, 0.85);
+        --radius-lg: 30px;
+        --radius-md: 18px;
+        --radius-sm: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, #0f1a33 0%, var(--bg) 55%, #020308 100%);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at 20% -10%, rgba(124, 93, 255, 0.25), transparent 50%),
+          radial-gradient(circle at 80% 0%, rgba(61, 213, 152, 0.2), transparent 45%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      canvas#confettiCanvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .app-shell {
+        position: relative;
+        z-index: 2;
+        padding: clamp(24px, 4vw, 56px);
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      header.hero {
+        background: linear-gradient(135deg, rgba(21, 31, 51, 0.9), rgba(15, 22, 38, 0.95));
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: clamp(24px, 4vw, 48px);
+        box-shadow: var(--shadow);
+        display: grid;
+        gap: 18px;
+        margin-bottom: 36px;
+      }
+
+      header.hero h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3.1rem);
+        letter-spacing: -0.02em;
+      }
+
+      header.hero p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 640px;
+        line-height: 1.5;
+      }
+
+      .hero-pill-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .hero-pill {
+        border-radius: 999px;
+        padding: 6px 16px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      main.layout {
+        display: grid;
+        grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 0.9fr);
+        gap: clamp(20px, 3vw, 32px);
+        align-items: flex-start;
+      }
+
+      .panel {
+        background: var(--panel);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: clamp(20px, 3vw, 32px);
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .panel::after {
+        content: "";
+        position: absolute;
+        inset: -60% auto auto -20%;
+        width: 320px;
+        height: 320px;
+        background: radial-gradient(circle, rgba(124, 93, 255, 0.18), transparent 70%);
+        pointer-events: none;
+      }
+
+      .panel.wheel-panel::after {
+        inset: auto -25% -60% auto;
+        background: radial-gradient(circle, rgba(61, 213, 152, 0.18), transparent 70%);
+      }
+
+      .panel > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .wheel-wrapper {
+        position: relative;
+        width: min(520px, 90vw);
+        margin: 0 auto 24px;
+      }
+
+      canvas#wheelCanvas {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 50%;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+        background: var(--panel-muted);
+      }
+
+      .wheel-pointer {
+        position: absolute;
+        top: -28px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 22px solid transparent;
+        border-right: 22px solid transparent;
+        border-bottom: 38px solid var(--accent-2);
+        filter: drop-shadow(0 10px 18px rgba(61, 213, 152, 0.6));
+      }
+
+      .wheel-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        align-items: center;
+        text-align: center;
+      }
+
+      button.primary {
+        background: linear-gradient(120deg, var(--accent) 0%, var(--accent-soft) 100%);
+        border: none;
+        color: var(--text);
+        border-radius: 999px;
+        padding: 16px 42px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+        box-shadow: 0 20px 50px rgba(124, 93, 255, 0.4);
+      }
+
+      button.primary:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      button.primary:not(:disabled):hover {
+        transform: translateY(-2px);
+      }
+
+      .status-card {
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.02);
+        padding: 16px 20px;
+        width: 100%;
+        max-width: 320px;
+      }
+
+      .status-card label {
+        display: block;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .status-card strong {
+        display: block;
+        font-size: 1.5rem;
+        letter-spacing: 0.02em;
+      }
+
+      .status-text {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .control-panel h2 {
+        margin-top: 0;
+        margin-bottom: 8px;
+        font-size: 1.3rem;
+      }
+
+      .control-panel p {
+        margin-top: 0;
+        margin-bottom: 24px;
+        color: var(--muted);
+      }
+
+      form#addNameForm {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+      }
+
+      form#addNameForm input {
+        flex: 1;
+        min-width: 200px;
+        border-radius: var(--radius-sm);
+        background: var(--panel-muted);
+        border: 1px solid var(--border-strong);
+        padding: 12px 14px;
+        color: var(--text);
+      }
+
+      form#addNameForm input::placeholder {
+        color: rgba(255, 255, 255, 0.35);
+      }
+
+      form#addNameForm button {
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--accent);
+        background: rgba(124, 93, 255, 0.12);
+        color: var(--text);
+        font-weight: 600;
+        padding: 12px 18px;
+        cursor: pointer;
+        transition: background 150ms ease;
+      }
+
+      form#addNameForm button:hover {
+        background: rgba(124, 93, 255, 0.24);
+      }
+
+      ul#nameList {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 520px;
+        overflow-y: auto;
+      }
+
+      .name-row {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        background: var(--panel-raised);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .name-row.is-disabled {
+        opacity: 0.45;
+      }
+
+      .name-main {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+      }
+
+      .name-badge {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: rgba(124, 93, 255, 0.12);
+        color: var(--accent-soft);
+        display: grid;
+        place-items: center;
+        font-weight: 600;
+      }
+
+      .name-input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        color: var(--text);
+        font-size: 1rem;
+        font-weight: 500;
+      }
+
+      .name-input:focus {
+        outline: 2px solid var(--accent);
+        border-radius: var(--radius-sm);
+        padding: 4px 8px;
+        margin: -4px -8px;
+      }
+
+      .name-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .switch {
+        position: relative;
+        width: 46px;
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.2);
+        transition: background 160ms ease;
+      }
+
+      .slider::after {
+        content: "";
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--text);
+        top: 2px;
+        left: 2px;
+        transition: transform 160ms ease, background 160ms ease;
+      }
+
+      .switch input:checked + .slider {
+        background: var(--accent);
+      }
+
+      .switch input:checked + .slider::after {
+        transform: translateX(22px);
+        background: #fff;
+      }
+
+      .ghost-btn {
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        padding: 6px 12px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .ghost-btn:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
+
+      .empty-row {
+        text-align: center;
+        padding: 18px;
+        border-radius: var(--radius-md);
+        border: 1px dashed var(--border);
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .result-card {
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        padding: 18px 22px;
+        background: rgba(255, 255, 255, 0.03);
+        transition: border-color 200ms ease, box-shadow 200ms ease;
+      }
+
+      .result-card.highlight {
+        border-color: var(--accent-2);
+        box-shadow: 0 20px 50px rgba(61, 213, 152, 0.35);
+      }
+
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 4, 9, 0.82);
+        display: grid;
+        place-items: center;
+        z-index: 10;
+      }
+
+      .modal-backdrop.hidden {
+        display: none;
+      }
+
+      .modal-panel {
+        background: var(--panel);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: 32px;
+        width: min(420px, 92vw);
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .modal-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      button.ghost {
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        border-radius: var(--radius-sm);
+        padding: 12px 18px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button.ghost:hover {
+        border-color: var(--accent);
+      }
+
+      button.danger {
+        background: linear-gradient(120deg, var(--danger), #ff9776);
+        color: var(--text);
+        border: none;
+      }
+
+      @media (max-width: 980px) {
+        main.layout {
+          grid-template-columns: 1fr;
+        }
+        .wheel-wrapper {
+          width: min(440px, 90vw);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <h1>Wheel of Names · Midnight Edition</h1>
+          <p>
+            Feed the wheel with your crew, spin in cinematic dark mode, and celebrate every winner with shimmering confetti.
+            Disable or re-enable names any time to keep the rotation fair.
+          </p>
+        </div>
+        <div class="hero-pill-group" aria-hidden="true">
+          <span class="hero-pill">Dark Mode</span>
+          <span class="hero-pill">Confetti &amp; Dialog</span>
+          <span class="hero-pill">Disable Anytime</span>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel wheel-panel" aria-label="Spinning wheel">
+          <div class="wheel-wrapper">
+            <canvas
+              id="wheelCanvas"
+              width="520"
+              height="520"
+              role="img"
+              aria-label="Wheel showing enabled names"
+            ></canvas>
+            <div class="wheel-pointer"></div>
+          </div>
+
+          <div class="wheel-controls">
+            <button class="primary" id="spinButton" type="button">Launch Spin</button>
+            <div class="status-card result-card" id="resultCard">
+              <label>Selected Name</label>
+              <strong id="selectedName">—</strong>
+              <p class="status-text" id="wheelStatus">Add names or enable someone to begin.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel control-panel" aria-label="Name manager">
+          <h2>Control the Roster</h2>
+          <p>Add, edit, disable, or remove names at any time. Changes sync instantly with the wheel.</p>
+          <form id="addNameForm" autocomplete="off">
+            <input id="nameInput" type="text" placeholder="Add a new name" aria-label="Name to add" required />
+            <button type="submit">Add</button>
+          </form>
+          <ul id="nameList" aria-live="polite"></ul>
+        </section>
+      </main>
+    </div>
+
+    <div
+      class="modal-backdrop hidden"
+      id="resultDialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dialogTitle"
+      aria-describedby="dialogBody"
+    >
+      <div class="modal-panel">
+        <h3 id="dialogTitle">Winner options</h3>
+        <p id="dialogBody">Keep this name active or disable it before the next spin.</p>
+        <div class="modal-actions">
+          <button class="ghost" type="button" id="keepNameBtn">Keep Active</button>
+          <button class="primary danger" type="button" id="disableNameBtn">Disable</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const TWO_PI = Math.PI * 2;
+        const storageKey = "won-dark-mode-names";
+        const palette = [
+          { fill: "#7C5DFF", text: "#F7FBFF" },
+          { fill: "#3DD598", text: "#04121D" },
+          { fill: "#2D6BFF", text: "#F7FBFF" },
+          { fill: "#FF8FB1", text: "#04121D" },
+          { fill: "#FDBA5E", text: "#04121D" },
+          { fill: "#25C2E8", text: "#04121D" },
+          { fill: "#F55555", text: "#F7FBFF" },
+          { fill: "#9F7AEA", text: "#04121D" }
+        ];
+
+        const wheelCanvas = document.getElementById("wheelCanvas");
+        const ctx = wheelCanvas.getContext("2d");
+        const spinButton = document.getElementById("spinButton");
+        const wheelStatus = document.getElementById("wheelStatus");
+        const selectedNameEl = document.getElementById("selectedName");
+        const nameListEl = document.getElementById("nameList");
+        const nameInput = document.getElementById("nameInput");
+        const addNameForm = document.getElementById("addNameForm");
+        const resultCard = document.getElementById("resultCard");
+        const dialog = document.getElementById("resultDialog");
+        const keepBtn = document.getElementById("keepNameBtn");
+        const disableBtn = document.getElementById("disableNameBtn");
+        const confettiCanvas = document.getElementById("confettiCanvas");
+        const confettiCtx = confettiCanvas.getContext("2d");
+
+        let entries = loadEntries();
+        let rotation = 0;
+        let spinning = false;
+        let pendingWinner = null;
+        let confettiPieces = [];
+        let confettiActive = false;
+        let confettiFrameId = null;
+        let highlightTimeout;
+
+        if (!entries.length) {
+          entries = getDefaultEntries();
+          persistEntries();
+        }
+
+        function getDefaultEntries() {
+          return ["Lumen Labs", "Night Shift", "Nebula Crew", "Starlight Ops", "Moonshot", "Photon Pack"].map(
+            createEntry
+          );
+        }
+
+        function createEntry(value) {
+          return {
+            id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+            value,
+            enabled: true
+          };
+        }
+
+        function loadEntries() {
+          try {
+            const stored = localStorage.getItem(storageKey);
+            if (!stored) return [];
+            const parsed = JSON.parse(stored);
+            if (!Array.isArray(parsed)) return [];
+            return parsed
+              .filter((item) => typeof item.value === "string" && item.value.trim())
+              .map((item) => ({
+                id: item.id || Math.random().toString(36).slice(2),
+                value: item.value.trim(),
+                enabled: item.enabled !== false
+              }));
+          } catch (error) {
+            console.warn("Unable to load saved names", error);
+            return [];
+          }
+        }
+
+        function persistEntries() {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(entries));
+          } catch (error) {
+            console.warn("Unable to persist names", error);
+          }
+        }
+
+        function getEnabledEntries() {
+          return entries.filter((entry) => entry.enabled);
+        }
+
+        function setStatus(message) {
+          wheelStatus.textContent = message;
+        }
+
+        function refreshSpinState() {
+          spinButton.disabled = spinning || !getEnabledEntries().length;
+        }
+
+        function renderList() {
+          nameListEl.innerHTML = "";
+          if (!entries.length) {
+            const empty = document.createElement("li");
+            empty.className = "empty-row";
+            empty.textContent = "Add names to get the first spin started.";
+            nameListEl.appendChild(empty);
+            return;
+          }
+
+          entries.forEach((entry, index) => {
+            const row = document.createElement("li");
+            row.className = "name-row" + (entry.enabled ? "" : " is-disabled");
+
+            const main = document.createElement("div");
+            main.className = "name-main";
+
+            const badge = document.createElement("span");
+            badge.className = "name-badge";
+            badge.textContent = index + 1;
+            main.appendChild(badge);
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.className = "name-input";
+            input.value = entry.value;
+            input.setAttribute("aria-label", `Edit name ${entry.value}`);
+            input.addEventListener("change", (event) => {
+              const nextValue = event.target.value.trim();
+              if (!nextValue) {
+                event.target.value = entry.value;
+                return;
+              }
+              entry.value = nextValue;
+              persistEntries();
+              drawWheel();
+              setStatus(`${entry.value} updated.`);
+            });
+            main.appendChild(input);
+            row.appendChild(main);
+
+            const actions = document.createElement("div");
+            actions.className = "name-actions";
+
+            const toggleWrap = document.createElement("label");
+            toggleWrap.className = "switch";
+            const toggle = document.createElement("input");
+            toggle.type = "checkbox";
+            toggle.checked = entry.enabled;
+            toggle.addEventListener("change", () => {
+              entry.enabled = toggle.checked;
+              persistEntries();
+              renderList();
+              drawWheel();
+              refreshSpinState();
+              if (!getEnabledEntries().length) {
+                setStatus("Enable at least one name to spin.");
+                selectedNameEl.textContent = "—";
+              } else {
+                setStatus(`${entry.value} is ${entry.enabled ? "active" : "resting"}.`);
+              }
+            });
+            const slider = document.createElement("span");
+            slider.className = "slider";
+            toggleWrap.appendChild(toggle);
+            toggleWrap.appendChild(slider);
+            actions.appendChild(toggleWrap);
+
+            const removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.className = "ghost-btn";
+            removeBtn.textContent = "Remove";
+            removeBtn.addEventListener("click", () => {
+              entries = entries.filter((item) => item.id !== entry.id);
+              persistEntries();
+              renderList();
+              drawWheel();
+              refreshSpinState();
+              if (!entries.length) {
+                selectedNameEl.textContent = "—";
+              }
+              setStatus(`${entry.value} removed from the wheel.`);
+            });
+            actions.appendChild(removeBtn);
+
+            row.appendChild(actions);
+            nameListEl.appendChild(row);
+          });
+        }
+
+        function drawWheel() {
+          const { width, height } = wheelCanvas;
+          ctx.clearRect(0, 0, width, height);
+
+          const enabled = getEnabledEntries();
+          const center = width / 2;
+          const radius = center - 12;
+
+          ctx.save();
+          ctx.translate(center, center);
+
+          if (!enabled.length) {
+            ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, TWO_PI);
+            ctx.fill();
+            ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+            ctx.font = "600 20px 'Inter', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("Enable names to spin", 0, 0);
+            ctx.restore();
+            return;
+          }
+
+          const sliceAngle = TWO_PI / enabled.length;
+          enabled.forEach((entry, index) => {
+            const startAngle = rotation + index * sliceAngle;
+            const endAngle = startAngle + sliceAngle;
+            const colors = palette[index % palette.length];
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, radius, startAngle, endAngle);
+            ctx.closePath();
+            ctx.fillStyle = colors.fill;
+            ctx.fill();
+
+            ctx.save();
+            ctx.rotate(startAngle + sliceAngle / 2);
+            ctx.fillStyle = colors.text;
+            ctx.font = "600 18px 'Inter', sans-serif";
+            ctx.textBaseline = "middle";
+            ctx.textAlign = "right";
+            ctx.fillText(entry.value, radius - 18, 0);
+            ctx.restore();
+          });
+
+          ctx.restore();
+        }
+
+        function spinWheel() {
+          if (spinning) return;
+          const enabled = getEnabledEntries();
+          if (!enabled.length) {
+            setStatus("Enable at least one name to spin.");
+            return;
+          }
+
+          spinning = true;
+          refreshSpinState();
+          setStatus("Spinning...");
+          resultCard.classList.remove("highlight");
+          pendingWinner = null;
+
+          const startRotation = rotation;
+          const extraTurns = 4 + Math.random() * 3;
+          const randomOffset = Math.random() * TWO_PI;
+          const targetRotation = startRotation + extraTurns * TWO_PI + randomOffset;
+          const duration = 4800;
+          const startTime = performance.now();
+
+          const animate = (now) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            rotation = startRotation + (targetRotation - startRotation) * eased;
+            drawWheel();
+
+            if (progress < 1) {
+              requestAnimationFrame(animate);
+            } else {
+              spinning = false;
+              refreshSpinState();
+              finalizeSpin();
+            }
+          };
+
+          requestAnimationFrame(animate);
+        }
+
+        function finalizeSpin() {
+          const enabled = getEnabledEntries();
+          if (!enabled.length) return;
+
+          const sliceAngle = TWO_PI / enabled.length;
+          const normalized = ((rotation % TWO_PI) + TWO_PI) % TWO_PI;
+          const pointerAngle = -Math.PI / 2;
+          const pointerRelative = (pointerAngle - normalized + TWO_PI) % TWO_PI;
+          const winningIndex = Math.floor(pointerRelative / sliceAngle) % enabled.length;
+          const winner = enabled[winningIndex];
+
+          pendingWinner = winner;
+          selectedNameEl.textContent = winner.value;
+          setStatus(`${winner.value} takes the spotlight!`);
+          flashResultCard();
+          launchConfetti();
+          openDialog(winner);
+        }
+
+        function flashResultCard() {
+          resultCard.classList.add("highlight");
+          clearTimeout(highlightTimeout);
+          highlightTimeout = setTimeout(() => {
+            resultCard.classList.remove("highlight");
+          }, 3200);
+        }
+
+        function openDialog(entry) {
+          dialog.classList.remove("hidden");
+          document.getElementById("dialogTitle").textContent = `Winner: ${entry.value}`;
+          document.getElementById("dialogBody").textContent = `Keep ${entry.value} active or disable them for the next spins.`;
+        }
+
+        function closeDialog() {
+          dialog.classList.add("hidden");
+          pendingWinner = null;
+        }
+
+        function keepWinnerActive() {
+          if (!pendingWinner) return;
+          setStatus(`${pendingWinner.value} stays in the game.`);
+          closeDialog();
+        }
+
+        function disableWinner() {
+          if (!pendingWinner) return;
+          entries = entries.map((entry) =>
+            entry.id === pendingWinner.id ? { ...entry, enabled: false } : entry
+          );
+          persistEntries();
+          renderList();
+          drawWheel();
+          refreshSpinState();
+          setStatus(`${pendingWinner.value} is resting for now.`);
+          selectedNameEl.textContent = pendingWinner.value;
+          closeDialog();
+        }
+
+        function launchConfetti() {
+          resizeConfetti();
+          confettiPieces = Array.from({ length: 140 }, createConfettiPiece);
+          confettiActive = true;
+          if (confettiFrameId) {
+            cancelAnimationFrame(confettiFrameId);
+            confettiFrameId = null;
+          }
+          confettiLoop();
+          setTimeout(() => {
+            confettiActive = false;
+          }, 2200);
+        }
+
+        function createConfettiPiece() {
+          const colors = ["#7C5DFF", "#3DD598", "#F55555", "#FDBA5E", "#25C2E8"];
+          return {
+            x: Math.random() * window.innerWidth,
+            y: -20,
+            size: 6 + Math.random() * 6,
+            speed: 2 + Math.random() * 3,
+            drift: -1 + Math.random() * 2,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rotation: Math.random() * TWO_PI,
+            rotationSpeed: -0.3 + Math.random() * 0.6
+          };
+        }
+
+        function confettiLoop() {
+          const scale = window.devicePixelRatio || 1;
+          confettiCtx.setTransform(1, 0, 0, 1, 0, 0);
+          confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+          confettiCtx.scale(scale, scale);
+
+          confettiPieces.forEach((piece) => {
+            piece.x += piece.drift;
+            piece.y += piece.speed;
+            piece.rotation += piece.rotationSpeed;
+          });
+
+          confettiPieces = confettiPieces.filter((piece) => piece.y < window.innerHeight + 30);
+
+          confettiPieces.forEach((piece) => {
+            confettiCtx.save();
+            confettiCtx.translate(piece.x, piece.y);
+            confettiCtx.rotate(piece.rotation);
+            confettiCtx.fillStyle = piece.color;
+            confettiCtx.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size * 0.6);
+            confettiCtx.restore();
+          });
+
+          if (confettiActive || confettiPieces.length) {
+            confettiFrameId = requestAnimationFrame(confettiLoop);
+          } else {
+            confettiFrameId = null;
+          }
+        }
+
+        function resizeConfetti() {
+          const scale = window.devicePixelRatio || 1;
+          confettiCanvas.width = window.innerWidth * scale;
+          confettiCanvas.height = window.innerHeight * scale;
+          confettiCanvas.style.width = "100%";
+          confettiCanvas.style.height = "100%";
+        }
+
+        addNameForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const value = nameInput.value.trim();
+          if (!value) return;
+          entries.push(createEntry(value));
+          nameInput.value = "";
+          persistEntries();
+          renderList();
+          drawWheel();
+          refreshSpinState();
+          setStatus(`${value} joined the wheel.`);
+        });
+
+        spinButton.addEventListener("click", spinWheel);
+        keepBtn.addEventListener("click", keepWinnerActive);
+        disableBtn.addEventListener("click", disableWinner);
+
+        dialog.addEventListener("click", (event) => {
+          if (event.target === dialog) {
+            closeDialog();
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && !dialog.classList.contains("hidden")) {
+            closeDialog();
+          }
+        });
+
+        window.addEventListener("resize", () => {
+          resizeConfetti();
+          drawWheel();
+        });
+
+        renderList();
+        drawWheel();
+        refreshSpinState();
+        resizeConfetti();
+        setStatus(getEnabledEntries().length ? "Ready when you are." : "Add names or enable someone to begin.");
+      })();
+    </script>
+  </body>
+</html>
+
+
+
+
+

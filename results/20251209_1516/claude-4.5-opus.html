@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Names</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0d0d0f;
+            --bg-secondary: #18181b;
+            --bg-tertiary: #27272a;
+            --bg-elevated: #2d2d32;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-cyan: #22d3ee;
+            --accent-magenta: #f472b6;
+            --accent-violet: #a78bfa;
+            --accent-amber: #fbbf24;
+            --accent-emerald: #34d399;
+            --accent-rose: #fb7185;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-focus: rgba(34, 211, 238, 0.5);
+            --glow-cyan: 0 0 40px rgba(34, 211, 238, 0.3);
+            --glow-magenta: 0 0 40px rgba(244, 114, 182, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-pattern {
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(244, 114, 182, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(167, 139, 250, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 3rem;
+            min-height: 100vh;
+            align-items: start;
+        }
+
+        @media (max-width: 1100px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+
+        /* Header */
+        header {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 1rem 0 2rem;
+        }
+
+        h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta), var(--accent-violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Wheel Section */
+        .wheel-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1;
+        }
+
+        .wheel-outer-ring {
+            position: absolute;
+            inset: -12px;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                var(--accent-cyan),
+                var(--accent-violet),
+                var(--accent-magenta),
+                var(--accent-amber),
+                var(--accent-emerald),
+                var(--accent-cyan)
+            );
+            opacity: 0.6;
+            filter: blur(2px);
+            animation: ringRotate 20s linear infinite;
+        }
+
+        @keyframes ringRotate {
+            to { transform: rotate(360deg); }
+        }
+
+        .wheel-wrapper {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            padding: 8px;
+            box-shadow: 
+                inset 0 2px 20px rgba(0, 0, 0, 0.5),
+                0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.3));
+        }
+
+        .pointer {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 45px solid var(--accent-cyan);
+            filter: drop-shadow(0 4px 8px rgba(34, 211, 238, 0.4));
+            z-index: 10;
+        }
+
+        .pointer::after {
+            content: '';
+            position: absolute;
+            top: -42px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 32px solid var(--text-primary);
+        }
+
+        .center-hub {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-elevated));
+            border: 3px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.4),
+                inset 0 2px 10px rgba(255, 255, 255, 0.05);
+            z-index: 5;
+        }
+
+        .center-hub svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--text-secondary);
+        }
+
+        /* Spin Button */
+        .spin-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 1rem 3rem;
+            border: none;
+            border-radius: 100px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+            color: var(--bg-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            box-shadow: var(--glow-cyan);
+        }
+
+        .spin-btn:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 
+                var(--glow-cyan),
+                0 10px 30px rgba(34, 211, 238, 0.3);
+        }
+
+        .spin-btn:active:not(:disabled) {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .spin-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Names Panel */
+        .names-panel {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            border: 1px solid var(--border-subtle);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-height: calc(100vh - 200px);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .name-count {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            padding: 0.35rem 0.75rem;
+            border-radius: 100px;
+        }
+
+        /* Input Area */
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .name-input {
+            flex: 1;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            padding: 0.875rem 1.25rem;
+            border: 2px solid var(--border-subtle);
+            border-radius: 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .name-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .name-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.15);
+        }
+
+        .add-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            background: var(--accent-emerald);
+            color: var(--bg-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .add-btn:hover {
+            background: #2dd4bf;
+            transform: translateY(-1px);
+        }
+
+        /* Names List */
+        .names-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        .names-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .names-list::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+        }
+
+        .names-list::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 3px;
+        }
+
+        .name-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+        }
+
+        .name-item:hover {
+            border-color: var(--border-subtle);
+            background: var(--bg-elevated);
+        }
+
+        .name-item.disabled {
+            opacity: 0.4;
+        }
+
+        .name-item.disabled .name-text {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .name-text {
+            flex: 1;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .name-text-input {
+            flex: 1;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--accent-cyan);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .name-text-input:focus {
+            outline: none;
+        }
+
+        .toggle-btn {
+            width: 44px;
+            height: 24px;
+            border-radius: 12px;
+            border: none;
+            background: var(--text-muted);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent-emerald);
+        }
+
+        .toggle-btn::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn.active::after {
+            left: 22px;
+        }
+
+        .edit-btn, .delete-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .edit-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--accent-cyan);
+        }
+
+        .delete-btn:hover {
+            background: rgba(251, 113, 133, 0.15);
+            color: var(--accent-rose);
+        }
+
+        .edit-btn svg, .delete-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 0.95rem;
+        }
+
+        /* Winner Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: 32px;
+            border: 1px solid var(--border-subtle);
+            padding: 3rem;
+            text-align: center;
+            max-width: 420px;
+            width: 90%;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 
+                0 25px 80px rgba(0, 0, 0, 0.5),
+                var(--glow-magenta);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .winner-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--accent-amber);
+            margin-bottom: 1rem;
+        }
+
+        .winner-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2rem;
+            word-break: break-word;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.875rem 2rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .keep-btn {
+            background: var(--accent-emerald);
+            color: var(--bg-primary);
+        }
+
+        .keep-btn:hover {
+            background: #2dd4bf;
+            transform: translateY(-2px);
+        }
+
+        .disable-btn {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .disable-btn:hover {
+            background: var(--bg-elevated);
+            color: var(--accent-rose);
+            border-color: var(--accent-rose);
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .wheel-container {
+                max-width: 320px;
+            }
+
+            .names-panel {
+                max-height: none;
+            }
+
+            .modal {
+                padding: 2rem;
+            }
+
+            .winner-name {
+                font-size: 1.75rem;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Wheel of Names</h1>
+            <p>Add names, spin the wheel, celebrate the winner</p>
+        </header>
+
+        <section class="wheel-section">
+            <div class="wheel-container">
+                <div class="wheel-outer-ring"></div>
+                <div class="wheel-wrapper">
+                    <canvas id="wheel" width="500" height="500"></canvas>
+                </div>
+                <div class="pointer"></div>
+                <div class="center-hub">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <button class="spin-btn" id="spin-btn" disabled>Spin the Wheel</button>
+        </section>
+
+        <aside class="names-panel">
+            <div class="panel-header">
+                <h2>Participants</h2>
+                <span class="name-count" id="name-count">0 names</span>
+            </div>
+
+            <div class="input-group">
+                <input type="text" class="name-input" id="name-input" placeholder="Enter a name..." maxlength="30">
+                <button class="add-btn" id="add-btn">Add</button>
+            </div>
+
+            <div class="names-list" id="names-list">
+                <div class="empty-state" id="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <p>No names added yet.<br>Add some names to get started!</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <div class="winner-label">🎉 Winner 🎉</div>
+            <div class="winner-name" id="winner-name"></div>
+            <div class="modal-actions">
+                <button class="modal-btn keep-btn" id="keep-btn">Keep in Wheel</button>
+                <button class="modal-btn disable-btn" id="disable-btn">Disable Name</button>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <script>
+        // Vibrant color palette for wheel segments
+        const COLORS = [
+            '#22d3ee', // cyan
+            '#f472b6', // magenta  
+            '#a78bfa', // violet
+            '#fbbf24', // amber
+            '#34d399', // emerald
+            '#fb7185', // rose
+            '#38bdf8', // sky
+            '#c084fc', // purple
+            '#f97316', // orange
+            '#4ade80', // green
+            '#e879f9', // fuchsia
+            '#facc15', // yellow
+        ];
+
+        // State
+        let names = [];
+        let currentRotation = 0;
+        let isSpinning = false;
+        let editingIndex = null;
+        let currentWinnerIndex = null;
+
+        // DOM Elements
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spin-btn');
+        const nameInput = document.getElementById('name-input');
+        const addBtn = document.getElementById('add-btn');
+        const namesList = document.getElementById('names-list');
+        const emptyState = document.getElementById('empty-state');
+        const nameCount = document.getElementById('name-count');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const winnerNameEl = document.getElementById('winner-name');
+        const keepBtn = document.getElementById('keep-btn');
+        const disableBtn = document.getElementById('disable-btn');
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
+
+        // Initialize
+        function init() {
+            resizeConfettiCanvas();
+            window.addEventListener('resize', resizeConfettiCanvas);
+            drawWheel();
+            updateUI();
+        }
+
+        function resizeConfettiCanvas() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+
+        // Add name
+        function addName() {
+            const name = nameInput.value.trim();
+            if (!name) return;
+
+            names.push({
+                text: name,
+                enabled: true,
+                color: COLORS[names.length % COLORS.length]
+            });
+
+            nameInput.value = '';
+            updateUI();
+            drawWheel();
+        }
+
+        // Toggle name enabled state
+        function toggleName(index) {
+            names[index].enabled = !names[index].enabled;
+            updateUI();
+            drawWheel();
+        }
+
+        // Edit name
+        function startEdit(index) {
+            editingIndex = index;
+            updateUI();
+        }
+
+        function saveEdit(index, newText) {
+            if (newText.trim()) {
+                names[index].text = newText.trim();
+            }
+            editingIndex = null;
+            updateUI();
+            drawWheel();
+        }
+
+        function cancelEdit() {
+            editingIndex = null;
+            updateUI();
+        }
+
+        // Delete name
+        function deleteName(index) {
+            names.splice(index, 1);
+            // Reassign colors
+            names.forEach((name, i) => {
+                name.color = COLORS[i % COLORS.length];
+            });
+            updateUI();
+            drawWheel();
+        }
+
+        // Update UI
+        function updateUI() {
+            const enabledNames = names.filter(n => n.enabled);
+            nameCount.textContent = `${enabledNames.length} name${enabledNames.length !== 1 ? 's' : ''}`;
+            spinBtn.disabled = enabledNames.length < 2 || isSpinning;
+
+            if (names.length === 0) {
+                emptyState.style.display = 'block';
+                namesList.querySelectorAll('.name-item').forEach(el => el.remove());
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            // Clear and rebuild list
+            namesList.querySelectorAll('.name-item').forEach(el => el.remove());
+
+            names.forEach((name, index) => {
+                const item = document.createElement('div');
+                item.className = `name-item${name.enabled ? '' : ' disabled'}`;
+
+                if (editingIndex === index) {
+                    item.innerHTML = `
+                        <span class="color-dot" style="background: ${name.color}"></span>
+                        <input type="text" class="name-text-input" value="${name.text}" maxlength="30" id="edit-input-${index}">
+                        <button class="edit-btn" onclick="saveEdit(${index}, document.getElementById('edit-input-${index}').value)" title="Save">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </button>
+                        <button class="delete-btn" onclick="cancelEdit()" title="Cancel">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    `;
+                } else {
+                    item.innerHTML = `
+                        <span class="color-dot" style="background: ${name.color}"></span>
+                        <span class="name-text">${escapeHtml(name.text)}</span>
+                        <button class="toggle-btn${name.enabled ? ' active' : ''}" onclick="toggleName(${index})" title="${name.enabled ? 'Disable' : 'Enable'}"></button>
+                        <button class="edit-btn" onclick="startEdit(${index})" title="Edit">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </button>
+                        <button class="delete-btn" onclick="deleteName(${index})" title="Delete">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                        </button>
+                    `;
+                }
+
+                namesList.appendChild(item);
+
+                // Focus edit input
+                if (editingIndex === index) {
+                    const input = item.querySelector('.name-text-input');
+                    input.focus();
+                    input.select();
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') saveEdit(index, input.value);
+                        if (e.key === 'Escape') cancelEdit();
+                    });
+                }
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Draw wheel
+        function drawWheel() {
+            const enabledNames = names.filter(n => n.enabled);
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 10;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (enabledNames.length === 0) {
+                // Draw empty wheel
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#27272a';
+                ctx.fill();
+                ctx.strokeStyle = '#3f3f46';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.fillStyle = '#71717a';
+                ctx.font = '500 18px Outfit';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Add names to spin', centerX, centerY);
+                return;
+            }
+
+            const sliceAngle = (Math.PI * 2) / enabledNames.length;
+
+            enabledNames.forEach((name, i) => {
+                const startAngle = i * sliceAngle;
+                const endAngle = startAngle + sliceAngle;
+
+                // Draw slice
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+
+                // Gradient fill
+                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+                gradient.addColorStop(0, lightenColor(name.color, 20));
+                gradient.addColorStop(1, name.color);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                // Slice border
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = getContrastColor(name.color);
+                ctx.font = '600 14px Outfit';
+                
+                const text = name.text.length > 12 ? name.text.substring(0, 11) + '…' : name.text;
+                ctx.fillText(text, radius - 20, 0);
+                ctx.restore();
+            });
+
+            // Center circle shadow
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 45, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fill();
+        }
+
+        function lightenColor(hex, percent) {
+            const num = parseInt(hex.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.min(255, (num >> 16) + amt);
+            const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+            const B = Math.min(255, (num & 0x0000FF) + amt);
+            return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
+        }
+
+        function getContrastColor(hex) {
+            const num = parseInt(hex.replace('#', ''), 16);
+            const R = num >> 16;
+            const G = (num >> 8) & 0x00FF;
+            const B = num & 0x0000FF;
+            const luminance = (0.299 * R + 0.587 * G + 0.114 * B) / 255;
+            return luminance > 0.5 ? '#0d0d0f' : '#fafafa';
+        }
+
+        // Spin wheel
+        function spin() {
+            const enabledNames = names.filter(n => n.enabled);
+            if (enabledNames.length < 2 || isSpinning) return;
+
+            isSpinning = true;
+            spinBtn.disabled = true;
+
+            // Calculate winner
+            const winnerLocalIndex = Math.floor(Math.random() * enabledNames.length);
+            const winner = enabledNames[winnerLocalIndex];
+            currentWinnerIndex = names.indexOf(winner);
+
+            // Calculate rotation
+            const sliceAngle = 360 / enabledNames.length;
+            const targetAngle = 360 - (winnerLocalIndex * sliceAngle + sliceAngle / 2) - 90;
+            const spins = 5 + Math.random() * 3;
+            const totalRotation = spins * 360 + targetAngle;
+
+            currentRotation += totalRotation;
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+            // Show winner after animation
+            setTimeout(() => {
+                isSpinning = false;
+                spinBtn.disabled = false;
+                showWinner(winner);
+            }, 4000);
+        }
+
+        // Show winner modal
+        function showWinner(winner) {
+            winnerNameEl.textContent = winner.text;
+            modalOverlay.classList.add('active');
+            triggerConfetti();
+        }
+
+        // Keep winner
+        function keepWinner() {
+            modalOverlay.classList.remove('active');
+            currentWinnerIndex = null;
+            updateUI();
+        }
+
+        // Disable winner
+        function disableWinner() {
+            if (currentWinnerIndex !== null) {
+                names[currentWinnerIndex].enabled = false;
+            }
+            modalOverlay.classList.remove('active');
+            currentWinnerIndex = null;
+            updateUI();
+            drawWheel();
+        }
+
+        // Confetti animation
+        let confettiParticles = [];
+        let confettiAnimationId = null;
+
+        function triggerConfetti() {
+            confettiParticles = [];
+            
+            for (let i = 0; i < 150; i++) {
+                confettiParticles.push({
+                    x: confettiCanvas.width / 2,
+                    y: confettiCanvas.height / 2,
+                    vx: (Math.random() - 0.5) * 20,
+                    vy: (Math.random() - 0.5) * 20 - 10,
+                    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+                    size: Math.random() * 10 + 5,
+                    rotation: Math.random() * 360,
+                    rotationSpeed: (Math.random() - 0.5) * 10,
+                    gravity: 0.3,
+                    drag: 0.99,
+                    shape: Math.random() > 0.5 ? 'rect' : 'circle'
+                });
+            }
+
+            if (confettiAnimationId) cancelAnimationFrame(confettiAnimationId);
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+            let activeParticles = 0;
+
+            confettiParticles.forEach(p => {
+                p.vy += p.gravity;
+                p.vx *= p.drag;
+                p.vy *= p.drag;
+                p.x += p.vx;
+                p.y += p.vy;
+                p.rotation += p.rotationSpeed;
+
+                if (p.y < confettiCanvas.height + 50) {
+                    activeParticles++;
+                    
+                    confettiCtx.save();
+                    confettiCtx.translate(p.x, p.y);
+                    confettiCtx.rotate((p.rotation * Math.PI) / 180);
+                    confettiCtx.fillStyle = p.color;
+
+                    if (p.shape === 'rect') {
+                        confettiCtx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+                    } else {
+                        confettiCtx.beginPath();
+                        confettiCtx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+                        confettiCtx.fill();
+                    }
+
+                    confettiCtx.restore();
+                }
+            });
+
+            if (activeParticles > 0) {
+                confettiAnimationId = requestAnimationFrame(animateConfetti);
+            }
+        }
+
+        // Event listeners
+        addBtn.addEventListener('click', addName);
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') addName();
+        });
+        spinBtn.addEventListener('click', spin);
+        keepBtn.addEventListener('click', keepWinner);
+        disableBtn.addEventListener('click', disableWinner);
+
+        // Close modal on overlay click
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) keepWinner();
+        });
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
+
