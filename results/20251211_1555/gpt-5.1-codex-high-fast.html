@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Names · Dark Pulse</title>
+    <!-- Generated per prompts/v3.md (Dark Mode requirements) -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap');
+
+        :root {
+            --bg: #05060a;
+            --bg-alt: #0c101c;
+            --panel: #12182a;
+            --panel-alt: #1b2238;
+            --text: #f7f8ff;
+            --muted: #8ea2d6;
+            --accent: #66fbd1;
+            --accent-strong: #00ffd1;
+            --danger: #ff6b81;
+            --shadow: 0 20px 60px rgba(4, 6, 11, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at top, #0e1424 0%, #05060a 60%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 32px clamp(16px, 4vw, 48px);
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-shell {
+            width: min(1200px, 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 4vw, 2.75rem);
+            margin: 0;
+            letter-spacing: -0.5px;
+            color: var(--text);
+        }
+
+        .tagline {
+            color: var(--muted);
+            margin: 4px 0 0;
+        }
+
+        .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(102, 251, 209, 0.1), rgba(13, 18, 34, 0.7));
+            border: 1px solid rgba(102, 251, 209, 0.2);
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card span {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .stat-card strong {
+            font-size: 1.8rem;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+            gap: 32px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border-radius: 28px;
+            padding: clamp(20px, 2.5vw, 32px);
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .wheel-stage {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -26px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 24px solid transparent;
+            border-right: 24px solid transparent;
+            border-bottom: 46px solid var(--accent);
+            filter: drop-shadow(0 6px 12px rgba(102, 251, 209, 0.35));
+            z-index: 5;
+        }
+
+        .wheel-pointer::after {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: -12px;
+            width: 24px;
+            height: 12px;
+            background: var(--panel);
+            border-radius: 0 0 12px 12px;
+        }
+
+        .spin-controls {
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .spin-btn {
+            background: linear-gradient(135deg, #66fbd1, #4af1ff 55%, #8a7dff);
+            border: none;
+            border-radius: 999px;
+            color: #041220;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 16px 56px;
+            cursor: pointer;
+            box-shadow: 0 15px 40px rgba(76, 239, 255, 0.3);
+            transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .spin-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .spin-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+        }
+
+        .spin-hint {
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .names-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .add-form {
+            display: flex;
+            gap: 12px;
+        }
+
+        .add-form input {
+            flex: 1;
+            background: var(--panel-alt);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .add-form input:focus {
+            outline: 2px solid rgba(102, 251, 209, 0.6);
+        }
+
+        .add-form button {
+            background: var(--accent-strong);
+            color: #041220;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 22px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .add-form button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .names-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 520px;
+            overflow-y: auto;
+        }
+
+        .names-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .names-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+        }
+
+        .name-row {
+            background: var(--panel-alt);
+            border-radius: 18px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .name-row.disabled {
+            opacity: 0.5;
+        }
+
+        .swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .name-content {
+            flex: 1;
+        }
+
+        .name-label {
+            font-weight: 600;
+        }
+
+        .name-meta {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .row-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .icon-btn.danger {
+            color: var(--danger);
+        }
+
+        .toggle {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            cursor: pointer;
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffffff;
+            transition: transform 0.2s ease;
+        }
+
+        .toggle.active {
+            background: rgba(102, 251, 209, 0.6);
+        }
+
+        .toggle.active::after {
+            transform: translateX(24px);
+        }
+
+        .inline-edit {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .inline-edit input {
+            flex: 1;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 10px;
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text);
+        }
+
+        .inline-edit button {
+            border: none;
+            border-radius: 10px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .inline-edit .save {
+            background: var(--accent);
+            color: #041220;
+        }
+
+        .inline-edit .cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px 16px;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 18px;
+            color: var(--muted);
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 6, 10, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-backdrop.is-visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-card {
+            background: var(--panel);
+            border-radius: 28px;
+            padding: 32px;
+            width: min(420px, 100%);
+            text-align: center;
+            position: relative;
+            border: 1px solid rgba(102, 251, 209, 0.2);
+            box-shadow: var(--shadow);
+        }
+
+        .modal-card h2 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .modal-card p {
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 0;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .keep-btn {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--text);
+        }
+
+        .disable-btn {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        #confettiLayer {
+            pointer-events: none;
+            position: fixed;
+            inset: 0;
+        }
+
+        @media (max-width: 1100px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+
+            .wheel-stage {
+                max-width: 420px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .add-form {
+                flex-direction: column;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <header>
+            <div>
+                <h1>Wheel of Names</h1>
+                <p class="tagline">Dark Mode edition · Spin, celebrate, disable, repeat.</p>
+            </div>
+        </header>
+
+        <section class="stats-strip" aria-live="polite">
+            <article class="stat-card">
+                <span>Total Names</span>
+                <strong id="totalCount">0</strong>
+            </article>
+            <article class="stat-card">
+                <span>Enabled</span>
+                <strong id="enabledCount">0</strong>
+            </article>
+            <article class="stat-card">
+                <span>Disabled</span>
+                <strong id="disabledCount">0</strong>
+            </article>
+        </section>
+
+        <main class="workspace">
+            <section class="panel">
+                <div class="wheel-stage">
+                    <div class="wheel-pointer" aria-hidden="true"></div>
+                    <canvas id="wheelCanvas" width="520" height="520" aria-label="Prize wheel"></canvas>
+                </div>
+                <div class="spin-controls">
+                    <button id="spinBtn" class="spin-btn" disabled>Spin the Wheel</button>
+                    <p class="spin-hint" id="spinHint">Add at least two enabled names to begin.</p>
+                </div>
+            </section>
+
+            <section class="panel names-panel">
+                <form class="add-form" id="addForm" autocomplete="off">
+                    <input id="nameInput" type="text" name="name" placeholder="Add a new name…" maxlength="40" required>
+                    <button type="submit" id="addBtn">Add</button>
+                </form>
+                <ul class="names-list" id="namesList"></ul>
+                <div class="empty-state" id="emptyState" hidden>
+                    No names yet. Start building your list to spin the wheel.
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-backdrop" id="winnerModal" role="dialog" aria-modal="true" aria-labelledby="winnerTitle" aria-live="assertive">
+        <div class="modal-card">
+            <button class="modal-close" type="button" id="closeModal" aria-label="Close winner modal">×</button>
+            <p class="name-meta">Winner</p>
+            <h2 id="winnerTitle"></h2>
+            <p>Keep the winner in the rotation or disable it for the next spin.</p>
+            <div class="modal-actions">
+                <button class="keep-btn" type="button" id="keepWinner">Keep</button>
+                <button class="disable-btn" type="button" id="disableWinner">Disable</button>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="confettiLayer"></canvas>
+
+    <script>
+        (() => {
+            'use strict';
+
+            const palette = ['#89fbd3', '#8a7dff', '#ffb86c', '#ff6fa3', '#6ed0ff', '#f4f38a', '#6df6ff', '#c58bff'];
+            let paletteIndex = 0;
+
+            const wheelCanvas = document.getElementById('wheelCanvas');
+            const wheelCtx = wheelCanvas.getContext('2d');
+            const spinBtn = document.getElementById('spinBtn');
+            const spinHint = document.getElementById('spinHint');
+            const namesList = document.getElementById('namesList');
+            const emptyState = document.getElementById('emptyState');
+            const addForm = document.getElementById('addForm');
+            const nameInput = document.getElementById('nameInput');
+            const addBtn = document.getElementById('addBtn');
+            const totalCount = document.getElementById('totalCount');
+            const enabledCount = document.getElementById('enabledCount');
+            const disabledCount = document.getElementById('disabledCount');
+
+            const modal = document.getElementById('winnerModal');
+            const winnerTitle = document.getElementById('winnerTitle');
+            const closeModalBtn = document.getElementById('closeModal');
+            const keepWinnerBtn = document.getElementById('keepWinner');
+            const disableWinnerBtn = document.getElementById('disableWinner');
+
+            const confettiCanvas = document.getElementById('confettiLayer');
+            const confettiCtx = confettiCanvas.getContext('2d');
+
+            const TWO_PI = Math.PI * 2;
+
+            const createId = () => {
+                if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+                return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            };
+
+            const createEntry = (label, enabled = true) => ({
+                id: createId(),
+                label: label.trim(),
+                enabled,
+                color: palette[paletteIndex++ % palette.length]
+            });
+
+            const state = {
+                names: [
+                    createEntry('Nova Rivera'),
+                    createEntry('Kai Bennett'),
+                    createEntry('Sienna Park'),
+                    createEntry('Imani Flores')
+                ],
+                editingId: null,
+                rotation: 0,
+                isSpinning: false,
+                selectedId: null
+            };
+
+            const confettiPieces = [];
+            let confettiFrame = null;
+
+            const getEnabledNames = () => state.names.filter((entry) => entry.enabled);
+
+            const formatLabel = (label) => (label.length > 18 ? `${label.slice(0, 15)}…` : label);
+
+            const normalizeAngle = (value) => {
+                let normalized = value % TWO_PI;
+                if (normalized < 0) normalized += TWO_PI;
+                return normalized;
+            };
+
+            const drawWheel = () => {
+                wheelCtx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+                const enabled = getEnabledNames();
+                if (!enabled.length) {
+                    drawPlaceholderWheel();
+                    return;
+                }
+
+                const radius = wheelCanvas.width / 2;
+                const sliceAngle = TWO_PI / enabled.length;
+
+                enabled.forEach((entry, index) => {
+                    const start = state.rotation + index * sliceAngle - Math.PI / 2;
+                    const end = start + sliceAngle;
+                    wheelCtx.beginPath();
+                    wheelCtx.moveTo(radius, radius);
+                    wheelCtx.arc(radius, radius, radius - 8, start, end);
+                    wheelCtx.closePath();
+                    wheelCtx.fillStyle = entry.color;
+                    wheelCtx.fill();
+                    wheelCtx.strokeStyle = 'rgba(5, 6, 10, 0.35)';
+                    wheelCtx.lineWidth = 2;
+                    wheelCtx.stroke();
+
+                    // Label
+                    const mid = start + sliceAngle / 2;
+                    wheelCtx.save();
+                    wheelCtx.translate(radius, radius);
+                    wheelCtx.rotate(mid);
+                    wheelCtx.fillStyle = '#05060a';
+                    wheelCtx.font = '600 16px "Space Grotesk", sans-serif';
+                    wheelCtx.textAlign = 'right';
+                    wheelCtx.fillText(formatLabel(entry.label), radius * 0.8, 6);
+                    wheelCtx.restore();
+                });
+
+                // Inner hub
+                wheelCtx.beginPath();
+                wheelCtx.arc(radius, radius, 40, 0, TWO_PI);
+                wheelCtx.fillStyle = '#05060a';
+                wheelCtx.fill();
+                wheelCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                wheelCtx.lineWidth = 4;
+                wheelCtx.stroke();
+            };
+
+            const drawPlaceholderWheel = () => {
+                const radius = wheelCanvas.width / 2;
+                wheelCtx.save();
+                wheelCtx.translate(radius, radius);
+                const gradient = wheelCtx.createRadialGradient(0, 0, 60, 0, 0, radius);
+                gradient.addColorStop(0, 'rgba(102, 251, 209, 0.12)');
+                gradient.addColorStop(1, 'rgba(102, 251, 209, 0.02)');
+                wheelCtx.fillStyle = gradient;
+                wheelCtx.beginPath();
+                wheelCtx.arc(0, 0, radius - 8, 0, TWO_PI);
+                wheelCtx.fill();
+                wheelCtx.restore();
+            };
+
+            const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
+
+            const animateRotation = (from, to, duration, onComplete) => {
+                const start = performance.now();
+                const frame = (now) => {
+                    const progress = Math.min((now - start) / duration, 1);
+                    const eased = easeOutQuart(progress);
+                    state.rotation = from + (to - from) * eased;
+                    drawWheel();
+                    if (progress < 1) {
+                        requestAnimationFrame(frame);
+                    } else {
+                        state.rotation = normalizeAngle(state.rotation);
+                        onComplete();
+                    }
+                };
+                requestAnimationFrame(frame);
+            };
+
+            const launchConfetti = () => {
+                cancelConfetti();
+                syncConfettiCanvas();
+                const colors = ['#7c9bff', '#58e2c2', '#ffb86c', '#ff6f91', '#e4f062'];
+                const count = 180;
+                confettiPieces.length = 0;
+
+                for (let i = 0; i < count; i++) {
+                    confettiPieces.push({
+                        x: Math.random() * confettiCanvas.width,
+                        y: -Math.random() * confettiCanvas.height * 0.5,
+                        size: 6 + Math.random() * 6,
+                        velocity: 2 + Math.random() * 3,
+                        tilt: Math.random() * Math.PI,
+                        rotation: Math.random() * TWO_PI,
+                        rotationSpeed: (Math.random() - 0.5) * 0.2,
+                        color: colors[i % colors.length]
+                    });
+                }
+
+                const start = performance.now();
+                const render = (now) => {
+                    const elapsed = now - start;
+                    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                    confettiPieces.forEach((piece) => {
+                        piece.y += piece.velocity;
+                        piece.x += Math.sin(piece.tilt) * 2;
+                        piece.tilt += 0.05;
+                        piece.rotation += piece.rotationSpeed;
+                        piece.velocity += 0.02;
+
+                        confettiCtx.save();
+                        confettiCtx.translate(piece.x, piece.y);
+                        confettiCtx.rotate(piece.rotation);
+                        confettiCtx.fillStyle = piece.color;
+                        confettiCtx.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size * 0.6);
+                        confettiCtx.restore();
+                    });
+
+                    if (elapsed < 4200) {
+                        confettiFrame = requestAnimationFrame(render);
+                    } else {
+                        cancelConfetti();
+                    }
+                };
+
+                confettiFrame = requestAnimationFrame(render);
+            };
+
+            const cancelConfetti = () => {
+                if (confettiFrame) {
+                    cancelAnimationFrame(confettiFrame);
+                    confettiFrame = null;
+                }
+                confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            };
+
+            const syncConfettiCanvas = () => {
+                confettiCanvas.width = window.innerWidth;
+                confettiCanvas.height = window.innerHeight;
+            };
+
+            const updateCounts = () => {
+                const enabled = getEnabledNames().length;
+                totalCount.textContent = state.names.length;
+                enabledCount.textContent = enabled;
+                disabledCount.textContent = state.names.length - enabled;
+            };
+
+            const updateSpinState = () => {
+                const enabled = getEnabledNames().length;
+                const canSpin = enabled >= 2 && !state.isSpinning;
+                spinBtn.disabled = !canSpin;
+                spinHint.textContent = enabled >= 2
+                    ? 'Ready when you are — tap Spin to choose a winner.'
+                    : 'Add or enable at least two names to enable the wheel.';
+            };
+
+            const renderNames = () => {
+                namesList.innerHTML = '';
+
+                if (!state.names.length) {
+                    emptyState.hidden = false;
+                    return;
+                }
+
+                emptyState.hidden = true;
+
+                state.names.forEach((entry, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.className = `name-row${entry.enabled ? '' : ' disabled'}`;
+                    listItem.dataset.id = entry.id;
+
+                    const swatch = document.createElement('span');
+                    swatch.className = 'swatch';
+                    swatch.style.background = entry.color;
+                    listItem.appendChild(swatch);
+
+                    const content = document.createElement('div');
+                    content.className = 'name-content';
+
+                    if (state.editingId === entry.id) {
+                        const form = document.createElement('form');
+                        form.className = 'inline-edit';
+                        const input = document.createElement('input');
+                        input.value = entry.label;
+                        input.autofocus = true;
+                        const saveBtn = document.createElement('button');
+                        saveBtn.type = 'submit';
+                        saveBtn.className = 'save';
+                        saveBtn.textContent = 'Save';
+                        const cancelBtn = document.createElement('button');
+                        cancelBtn.type = 'button';
+                        cancelBtn.className = 'cancel';
+                        cancelBtn.textContent = 'Cancel';
+                        cancelBtn.addEventListener('click', () => {
+                            state.editingId = null;
+                            renderNames();
+                        });
+                        form.addEventListener('submit', (event) => {
+                            event.preventDefault();
+                            const value = input.value.trim();
+                            if (!value) return;
+                            entry.label = value;
+                            state.editingId = null;
+                            refreshUI();
+                        });
+                        form.append(input, saveBtn, cancelBtn);
+                        content.appendChild(form);
+                    } else {
+                        const label = document.createElement('div');
+                        label.className = 'name-label';
+                        label.textContent = entry.label;
+
+                        const meta = document.createElement('div');
+                        meta.className = 'name-meta';
+                        meta.textContent = entry.enabled ? 'Enabled' : 'Disabled';
+                        content.append(label, meta);
+                    }
+
+                    listItem.appendChild(content);
+
+                    if (state.editingId !== entry.id) {
+                        const actions = document.createElement('div');
+                        actions.className = 'row-actions';
+
+                        const editBtn = document.createElement('button');
+                        editBtn.type = 'button';
+                        editBtn.className = 'icon-btn';
+                        editBtn.title = 'Edit name';
+                        editBtn.textContent = '✎';
+                        editBtn.addEventListener('click', () => {
+                            state.editingId = entry.id;
+                            renderNames();
+                        });
+
+                        const toggleBtn = document.createElement('button');
+                        toggleBtn.type = 'button';
+                        toggleBtn.className = `toggle${entry.enabled ? ' active' : ''}`;
+                        toggleBtn.setAttribute('aria-pressed', entry.enabled);
+                        toggleBtn.title = entry.enabled ? 'Disable name' : 'Enable name';
+                        toggleBtn.addEventListener('click', () => {
+                            entry.enabled = !entry.enabled;
+                            if (getEnabledNames().length < 2) {
+                                state.isSpinning = false;
+                            }
+                            refreshUI();
+                        });
+
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.type = 'button';
+                        deleteBtn.className = 'icon-btn danger';
+                        deleteBtn.title = 'Remove name';
+                        deleteBtn.textContent = '×';
+                        deleteBtn.addEventListener('click', () => {
+                            state.names.splice(index, 1);
+                            if (state.editingId === entry.id) {
+                                state.editingId = null;
+                            }
+                            refreshUI();
+                        });
+
+                        actions.append(editBtn, toggleBtn, deleteBtn);
+                        listItem.appendChild(actions);
+                    }
+
+                    namesList.appendChild(listItem);
+                });
+            };
+
+            const refreshUI = () => {
+                renderNames();
+                updateCounts();
+                updateSpinState();
+                drawWheel();
+            };
+
+            const spinWheel = () => {
+                if (state.isSpinning) return;
+                const enabled = getEnabledNames();
+                if (enabled.length < 2) return;
+
+                state.isSpinning = true;
+                updateSpinState();
+
+                const sliceAngle = TWO_PI / enabled.length;
+                const targetIndex = Math.floor(Math.random() * enabled.length);
+                const normalizedTarget = normalizeAngle(-(targetIndex + 0.5) * sliceAngle);
+                const normalizedCurrent = normalizeAngle(state.rotation);
+                let additional = normalizedTarget - normalizedCurrent;
+                if (additional <= 0) additional += TWO_PI;
+                const spins = 6 + Math.random() * 2;
+                const targetRotation = state.rotation + spins * TWO_PI + additional;
+
+                animateRotation(state.rotation, targetRotation, 4800, () => {
+                    state.isSpinning = false;
+                    state.rotation = targetRotation;
+                    state.selectedId = enabled[targetIndex].id;
+                    showWinner(enabled[targetIndex]);
+                    launchConfetti();
+                    updateSpinState();
+                });
+            };
+
+            const showWinner = (entry) => {
+                winnerTitle.textContent = entry.label;
+                modal.classList.add('is-visible');
+                keepWinnerBtn.focus();
+            };
+
+            const hideWinnerModal = () => {
+                modal.classList.remove('is-visible');
+                state.selectedId = null;
+                cancelConfetti();
+            };
+
+            addForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const value = nameInput.value.trim();
+                if (!value) return;
+                state.names.push(createEntry(value));
+                nameInput.value = '';
+                refreshUI();
+            });
+
+            nameInput.addEventListener('input', () => {
+                addBtn.disabled = !nameInput.value.trim();
+            });
+
+            spinBtn.addEventListener('click', spinWheel);
+            keepWinnerBtn.addEventListener('click', hideWinnerModal);
+            disableWinnerBtn.addEventListener('click', () => {
+                if (!state.selectedId) return;
+                const winner = state.names.find((entry) => entry.id === state.selectedId);
+                if (winner) {
+                    winner.enabled = false;
+                }
+                hideWinnerModal();
+                refreshUI();
+            });
+            closeModalBtn.addEventListener('click', hideWinnerModal);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    hideWinnerModal();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.classList.contains('is-visible')) {
+                    hideWinnerModal();
+                }
+            });
+
+            window.addEventListener('resize', syncConfettiCanvas);
+
+            refreshUI();
+            syncConfettiCanvas();
+        })();
+    </script>
+</body>
+</html>

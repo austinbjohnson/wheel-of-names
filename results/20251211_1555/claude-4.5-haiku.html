@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Names</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0d0d0d;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #252525;
+            --bg-elevated: #2a2a2a;
+            --text-primary: #f5f5f5;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666;
+            --accent-cyan: #00e5cc;
+            --accent-magenta: #ff3d8a;
+            --accent-amber: #ffc107;
+            --accent-violet: #9c5fff;
+            --border-color: #333;
+            --glow-cyan: 0 0 30px rgba(0, 229, 204, 0.4);
+            --glow-magenta: 0 0 30px rgba(255, 61, 138, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Subtle animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(0, 229, 204, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 61, 138, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(156, 95, 255, 0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 3rem;
+            min-height: 100vh;
+            align-items: start;
+        }
+
+        @media (max-width: 1100px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+        }
+
+        /* Header */
+        header {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 1rem 0 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-magenta) 50%, var(--accent-amber) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-weight: 300;
+            font-size: 1.1rem;
+        }
+
+        /* Wheel Section */
+        .wheel-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1;
+        }
+
+        .wheel-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 
+                0 0 0 8px var(--bg-tertiary),
+                0 0 0 12px var(--border-color),
+                0 20px 60px rgba(0, 0, 0, 0.5);
+            transition: transform 0.1s ease-out;
+        }
+
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: var(--bg-tertiary);
+            border-radius: 50%;
+            border: 4px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .wheel-center::before {
+            content: '⚡';
+            font-size: 2rem;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+        }
+
+        .pointer svg {
+            width: 50px;
+            height: 60px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+        }
+
+        /* Spin Button */
+        .spin-btn {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 1rem 3rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            box-shadow: var(--glow-cyan);
+        }
+
+        .spin-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 
+                var(--glow-cyan),
+                0 10px 40px rgba(0, 229, 204, 0.3);
+        }
+
+        .spin-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spin-btn.spinning {
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: var(--glow-cyan); }
+            50% { box-shadow: var(--glow-magenta); }
+        }
+
+        /* Names Panel */
+        .names-panel {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-height: calc(100vh - 200px);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .name-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-cyan);
+            background: rgba(0, 229, 204, 0.1);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+        }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .name-input {
+            flex: 1;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            padding: 0.85rem 1.25rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .name-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 229, 204, 0.15);
+        }
+
+        .name-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .add-btn {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            width: 50px;
+            height: 50px;
+            background: var(--accent-magenta);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-btn:hover {
+            background: #ff5a9d;
+            transform: scale(1.05);
+        }
+
+        /* Names List */
+        .names-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        .names-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .names-list::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+        }
+
+        .names-list::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .name-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .name-item:hover {
+            border-color: var(--border-color);
+        }
+
+        .name-item.disabled {
+            opacity: 0.4;
+        }
+
+        .name-item.disabled .name-text {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .name-text {
+            flex: 1;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .name-item input.edit-input {
+            flex: 1;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 6px;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .toggle-btn {
+            width: 40px;
+            height: 22px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 11px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+
+        .toggle-btn.active::after {
+            background: var(--bg-primary);
+            left: 20px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1.1rem;
+            transition: color 0.2s ease;
+            opacity: 0;
+        }
+
+        .name-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            color: var(--accent-magenta);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            padding: 2.5rem;
+            text-align: center;
+            max-width: 420px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .winner-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--accent-amber);
+            margin-bottom: 0.5rem;
+        }
+
+        .winner-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.85rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .modal-btn.keep {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+        }
+
+        .modal-btn.keep:hover {
+            background: #33ebd6;
+            transform: translateY(-2px);
+        }
+
+        .modal-btn.disable {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .modal-btn.disable:hover {
+            border-color: var(--accent-magenta);
+            color: var(--accent-magenta);
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+    
+    <div class="container">
+        <header>
+            <h1>Wheel of Names</h1>
+            <p class="subtitle">Add names, spin the wheel, pick a winner</p>
+        </header>
+
+        <section class="wheel-section">
+            <div class="wheel-container">
+                <div class="pointer">
+                    <svg viewBox="0 0 50 60" fill="none">
+                        <path d="M25 60L5 15L25 25L45 15L25 60Z" fill="var(--accent-amber)"/>
+                        <path d="M25 0L45 15L25 25L5 15L25 0Z" fill="#ffdb4d"/>
+                    </svg>
+                </div>
+                <div class="wheel-wrapper">
+                    <canvas id="wheel" width="500" height="500"></canvas>
+                    <div class="wheel-center"></div>
+                </div>
+            </div>
+            <button class="spin-btn" id="spinBtn">Spin the Wheel</button>
+        </section>
+
+        <aside class="names-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Participants</h2>
+                <span class="name-count" id="nameCount">0 names</span>
+            </div>
+            
+            <div class="input-area">
+                <input type="text" class="name-input" id="nameInput" placeholder="Enter a name..." />
+                <button class="add-btn" id="addBtn">+</button>
+            </div>
+            
+            <div class="names-list" id="namesList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🎯</div>
+                    <p>Add some names to get started!</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <p class="winner-label">🎉 Winner 🎉</p>
+            <h2 class="winner-name" id="winnerName">Name</h2>
+            <div class="modal-actions">
+                <button class="modal-btn keep" id="keepBtn">Keep</button>
+                <button class="modal-btn disable" id="disableBtn">Disable</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Vibrant color palette for wheel segments
+        const COLORS = [
+            '#00e5cc', '#ff3d8a', '#9c5fff', '#ffc107', 
+            '#00b4d8', '#ff6b6b', '#7c3aed', '#06d6a0',
+            '#f72585', '#4cc9f0', '#ffd60a', '#8338ec',
+            '#fb5607', '#3a86ff', '#ff006e', '#38b000'
+        ];
+
+        // State
+        let names = [];
+        let isSpinning = false;
+        let currentRotation = 0;
+        let selectedWinner = null;
+
+        // DOM Elements
+        const wheelCanvas = document.getElementById('wheel');
+        const ctx = wheelCanvas.getContext('2d');
+        const spinBtn = document.getElementById('spinBtn');
+        const nameInput = document.getElementById('nameInput');
+        const addBtn = document.getElementById('addBtn');
+        const namesList = document.getElementById('namesList');
+        const nameCount = document.getElementById('nameCount');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const winnerNameEl = document.getElementById('winnerName');
+        const keepBtn = document.getElementById('keepBtn');
+        const disableBtn = document.getElementById('disableBtn');
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
+
+        // Initialize
+        function init() {
+            resizeConfettiCanvas();
+            window.addEventListener('resize', resizeConfettiCanvas);
+            
+            addBtn.addEventListener('click', addName);
+            nameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addName();
+            });
+            spinBtn.addEventListener('click', spin);
+            keepBtn.addEventListener('click', closeModal);
+            disableBtn.addEventListener('click', disableWinner);
+            
+            // Add some default names for demo
+            ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank'].forEach(name => {
+                names.push({ name, enabled: true, color: getColor(names.length) });
+            });
+            
+            renderNamesList();
+            drawWheel();
+        }
+
+        function resizeConfettiCanvas() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+
+        function getColor(index) {
+            return COLORS[index % COLORS.length];
+        }
+
+        function getEnabledNames() {
+            return names.filter(n => n.enabled);
+        }
+
+        function addName() {
+            const value = nameInput.value.trim();
+            if (value) {
+                names.push({ name: value, enabled: true, color: getColor(names.length) });
+                nameInput.value = '';
+                renderNamesList();
+                drawWheel();
+            }
+        }
+
+        function toggleName(index) {
+            names[index].enabled = !names[index].enabled;
+            renderNamesList();
+            drawWheel();
+        }
+
+        function deleteName(index) {
+            names.splice(index, 1);
+            renderNamesList();
+            drawWheel();
+        }
+
+        function startEditing(index) {
+            const item = document.querySelector(`[data-index="${index}"]`);
+            const textEl = item.querySelector('.name-text');
+            const currentText = names[index].name;
+            
+            textEl.outerHTML = `<input class="edit-input" type="text" value="${currentText}" data-index="${index}" />`;
+            
+            const input = item.querySelector('.edit-input');
+            input.focus();
+            input.select();
+            
+            input.addEventListener('blur', () => finishEditing(index, input.value));
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') finishEditing(index, input.value);
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    finishEditing(index, currentText);
+                }
+            });
+        }
+
+        function finishEditing(index, value) {
+            const trimmed = value.trim();
+            if (trimmed) {
+                names[index].name = trimmed;
+            }
+            renderNamesList();
+            drawWheel();
+        }
+
+        function renderNamesList() {
+            const enabled = getEnabledNames();
+            nameCount.textContent = `${enabled.length} name${enabled.length !== 1 ? 's' : ''}`;
+            
+            if (names.length === 0) {
+                namesList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎯</div>
+                        <p>Add some names to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            namesList.innerHTML = names.map((item, index) => `
+                <div class="name-item ${item.enabled ? '' : 'disabled'}" data-index="${index}">
+                    <span class="color-dot" style="background: ${item.color}"></span>
+                    <span class="name-text" ondblclick="startEditing(${index})">${item.name}</span>
+                    <button class="toggle-btn ${item.enabled ? 'active' : ''}" onclick="toggleName(${index})"></button>
+                    <button class="delete-btn" onclick="deleteName(${index})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function drawWheel() {
+            const enabled = getEnabledNames();
+            const centerX = wheelCanvas.width / 2;
+            const centerY = wheelCanvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 10;
+            
+            ctx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+            
+            if (enabled.length === 0) {
+                // Draw empty wheel
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#252525';
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                ctx.fillStyle = '#666';
+                ctx.font = '20px Outfit';
+                ctx.textAlign = 'center';
+                ctx.fillText('Add names to spin!', centerX, centerY);
+                return;
+            }
+            
+            const sliceAngle = (Math.PI * 2) / enabled.length;
+            
+            enabled.forEach((item, index) => {
+                const startAngle = index * sliceAngle + currentRotation;
+                const endAngle = startAngle + sliceAngle;
+                
+                // Draw slice
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = item.color;
+                ctx.fill();
+                
+                // Draw border
+                ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#000';
+                ctx.font = `bold ${Math.max(12, Math.min(18, 200 / enabled.length))}px Outfit`;
+                ctx.fillText(item.name, radius - 20, 5);
+                ctx.restore();
+            });
+            
+            // Draw outer ring
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
+
+        function spin() {
+            const enabled = getEnabledNames();
+            if (enabled.length < 2 || isSpinning) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+            spinBtn.classList.add('spinning');
+            
+            // Random winner
+            const winnerIndex = Math.floor(Math.random() * enabled.length);
+            selectedWinner = enabled[winnerIndex];
+            
+            // Calculate target rotation
+            const sliceAngle = (Math.PI * 2) / enabled.length;
+            const targetSlice = -winnerIndex * sliceAngle - sliceAngle / 2 - Math.PI / 2;
+            const spins = 5 + Math.random() * 3; // 5-8 full rotations
+            const targetRotation = currentRotation + spins * Math.PI * 2 + (targetSlice - currentRotation % (Math.PI * 2));
+            
+            const duration = 4000 + Math.random() * 1000;
+            const startTime = performance.now();
+            const startRotation = currentRotation;
+            
+            function animate(time) {
+                const elapsed = time - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function (ease out cubic)
+                const eased = 1 - Math.pow(1 - progress, 3);
+                
+                currentRotation = startRotation + (targetRotation - startRotation) * eased;
+                drawWheel();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                    spinBtn.classList.remove('spinning');
+                    showWinner();
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        function showWinner() {
+            winnerNameEl.textContent = selectedWinner.name;
+            modalOverlay.classList.add('active');
+            startConfetti();
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            stopConfetti();
+        }
+
+        function disableWinner() {
+            const index = names.findIndex(n => n.name === selectedWinner.name && n.enabled);
+            if (index !== -1) {
+                names[index].enabled = false;
+                renderNamesList();
+                drawWheel();
+            }
+            closeModal();
+        }
+
+        // Confetti System
+        let confettiParticles = [];
+        let confettiAnimationId = null;
+
+        function startConfetti() {
+            confettiParticles = [];
+            
+            for (let i = 0; i < 150; i++) {
+                confettiParticles.push({
+                    x: confettiCanvas.width / 2,
+                    y: confettiCanvas.height / 2,
+                    vx: (Math.random() - 0.5) * 20,
+                    vy: (Math.random() - 0.5) * 20 - 10,
+                    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+                    size: Math.random() * 10 + 5,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 0.2,
+                    gravity: 0.3
+                });
+            }
+            
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            
+            let activeParticles = 0;
+            
+            confettiParticles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += p.gravity;
+                p.vx *= 0.99;
+                p.rotation += p.rotationSpeed;
+                
+                if (p.y < confettiCanvas.height + 50) {
+                    activeParticles++;
+                    
+                    confettiCtx.save();
+                    confettiCtx.translate(p.x, p.y);
+                    confettiCtx.rotate(p.rotation);
+                    confettiCtx.fillStyle = p.color;
+                    confettiCtx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+                    confettiCtx.restore();
+                }
+            });
+            
+            if (activeParticles > 0) {
+                confettiAnimationId = requestAnimationFrame(animateConfetti);
+            }
+        }
+
+        function stopConfetti() {
+            if (confettiAnimationId) {
+                cancelAnimationFrame(confettiAnimationId);
+                confettiAnimationId = null;
+            }
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
+
