@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Names - Dark Mode (Prompt v3)</title>
+    <style>
+        :root {
+            --bg: #0f1115;
+            --panel: #141820;
+            --panel-alt: #1d2330;
+            --text: #e6ecf5;
+            --muted: #8b93a7;
+            --accent: #7c4dff;
+            --accent-2: #00e0b7;
+            --danger: #ff6b6b;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+            background: radial-gradient(120% 120% at 50% 20%, #1c2433, #0c1018 60%, #080b11);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 32px;
+        }
+
+        header {
+            max-width: 1200px;
+            margin: 0 auto 24px auto;
+        }
+
+        .title-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 32px;
+            letter-spacing: 0.4px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(124, 77, 255, 0.15);
+            color: #d7c4ff;
+            font-size: 13px;
+            border: 1px solid rgba(124, 77, 255, 0.35);
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 980px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: linear-gradient(145deg, var(--panel), var(--panel-alt));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .wheel-shell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .wheel-wrap {
+            position: relative;
+            width: 440px;
+            height: 440px;
+            max-width: 100%;
+        }
+
+        canvas#wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 45%, rgba(255,255,255,0.04), rgba(255,255,255,0));
+        }
+
+        .pointer {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 16px solid transparent;
+            border-right: 16px solid transparent;
+            border-top: 28px solid var(--accent);
+            filter: drop-shadow(0 0 12px rgba(124, 77, 255, 0.7));
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+            color: #0b0d13;
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .primary {
+            background: linear-gradient(135deg, var(--accent), #a06bff);
+            color: #fff;
+            box-shadow: 0 10px 25px rgba(124, 77, 255, 0.35);
+        }
+
+        .ghost {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .danger {
+            background: linear-gradient(135deg, #ff6b6b, #ff9270);
+            color: #fff;
+        }
+
+        button:not(:disabled):hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .card-head h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        form.add-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: #111623;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+
+        input[type="text"]:focus {
+            outline: 2px solid rgba(124, 77, 255, 0.55);
+        }
+
+        .pill-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        ul#namesList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 430px;
+            overflow-y: auto;
+        }
+
+        .name-row {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .name-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .name-text {
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .disabled .name-text {
+            color: var(--muted);
+            text-decoration: line-through;
+        }
+
+        .name-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .mini {
+            padding: 8px 10px;
+            font-size: 13px;
+            color: #fff;
+            border-radius: 8px;
+        }
+
+        .empty {
+            padding: 22px;
+            text-align: center;
+            color: var(--muted);
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+        }
+
+        .meta {
+            display: flex;
+            gap: 12px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* Winner modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-box {
+            background: linear-gradient(160deg, #161c28, #0f131c);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 28px;
+            border-radius: 16px;
+            width: min(440px, 92vw);
+            text-align: center;
+            box-shadow: var(--shadow);
+            animation: pop 0.22s ease-out;
+        }
+
+        @keyframes pop {
+            from { transform: scale(0.94); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .winner-name {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 12px 0 4px;
+            color: var(--accent-2);
+            text-shadow: 0 0 16px rgba(0, 224, 183, 0.6);
+        }
+
+        .confetti-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 40;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title-row">
+            <h1>Wheel of Names</h1>
+            <span class="pill">Prompt v3 · Dark Mode</span>
+        </div>
+        <p class="subtitle">Add, edit, enable/disable names; spin to pick a winner with confetti and post-spin controls.</p>
+    </header>
+
+    <main>
+        <section class="card">
+            <div class="wheel-shell">
+                <div class="wheel-wrap">
+                    <div class="pointer"></div>
+                    <canvas id="wheel" width="440" height="440"></canvas>
+                </div>
+                <div class="controls">
+                    <button id="spinBtn" class="primary">Spin the Wheel</button>
+                    <button id="shuffleBtn" class="ghost">Shuffle Slice Colors</button>
+                </div>
+                <div class="meta" aria-live="polite">
+                    <span id="countMeta">0 names</span>
+                    <span id="enabledMeta">0 enabled</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-head">
+                <h2>Name Controls</h2>
+                <span class="pill">Manage entries</span>
+            </div>
+
+            <form id="addForm" class="add-form">
+                <input id="nameInput" type="text" placeholder="Add a name…" autocomplete="off">
+                <button type="submit" class="primary">Add</button>
+            </form>
+
+            <div class="pill-row">
+                <button type="button" id="seedBtn" class="ghost">Add sample names</button>
+                <button type="button" id="clearBtn" class="danger">Clear all</button>
+            </div>
+
+            <ul id="namesList"></ul>
+        </section>
+    </main>
+
+    <div class="modal" id="winnerModal" role="dialog" aria-modal="true" aria-labelledby="winnerHeading">
+        <div class="modal-box">
+            <div id="winnerHeading" class="pill" style="justify-content:center;">🎉 Winner</div>
+            <div class="winner-name" id="winnerText"></div>
+            <p class="subtitle">Keep them in the pool or disable for future spins.</p>
+            <div class="controls" style="margin-top: 18px;">
+                <button type="button" id="keepBtn" class="primary">Keep</button>
+                <button type="button" id="disableBtn" class="danger">Disable</button>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
+    <script>
+        // State
+        const state = {
+            names: [
+                { text: "Ada Lovelace", enabled: true },
+                { text: "Grace Hopper", enabled: true },
+                { text: "Katherine Johnson", enabled: true },
+                { text: "Alan Turing", enabled: true },
+                { text: "Radia Perlman", enabled: true },
+                { text: "Nikola Tesla", enabled: true }
+            ],
+            rotation: 0,
+            isSpinning: false,
+            selectedIndex: null
+        };
+
+        // Elements
+        const wheel = document.getElementById("wheel");
+        const ctx = wheel.getContext("2d");
+        const spinBtn = document.getElementById("spinBtn");
+        const shuffleBtn = document.getElementById("shuffleBtn");
+        const namesList = document.getElementById("namesList");
+        const addForm = document.getElementById("addForm");
+        const nameInput = document.getElementById("nameInput");
+        const seedBtn = document.getElementById("seedBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const winnerModal = document.getElementById("winnerModal");
+        const winnerText = document.getElementById("winnerText");
+        const keepBtn = document.getElementById("keepBtn");
+        const disableBtn = document.getElementById("disableBtn");
+        const countMeta = document.getElementById("countMeta");
+        const enabledMeta = document.getElementById("enabledMeta");
+        const confettiCanvas = document.getElementById("confettiCanvas");
+        const confettiCtx = confettiCanvas.getContext("2d");
+
+        // Colors
+        let palette = [
+            "#7c4dff", "#00e0b7", "#ff6b6b", "#f5a524",
+            "#36cfc9", "#4c6fff", "#ff8c42", "#6dd3ff",
+            "#ff7cc2", "#9ef01a", "#f72585", "#06d6a0"
+        ];
+
+        const confettiPieces = [];
+
+        function enabledNames() {
+            return state.names
+                .map((name, index) => ({ ...name, index }))
+                .filter(item => item.enabled);
+        }
+
+        function renderList() {
+            namesList.innerHTML = "";
+            if (state.names.length === 0) {
+                const li = document.createElement("li");
+                li.className = "empty";
+                li.textContent = "Add names to begin. You can enable/disable anytime.";
+                namesList.appendChild(li);
+            } else {
+                state.names.forEach((name, index) => {
+                    const li = document.createElement("li");
+                    li.className = "name-row" + (name.enabled ? "" : " disabled");
+                    li.dataset.index = String(index);
+
+                    const left = document.createElement("div");
+                    left.className = "name-left";
+
+                    const dot = document.createElement("span");
+                    dot.className = "dot";
+                    dot.style.background = palette[index % palette.length];
+
+                    const label = document.createElement("span");
+                    label.className = "name-text";
+                    label.textContent = name.text;
+
+                    left.append(dot, label);
+
+                    const actions = document.createElement("div");
+                    actions.className = "name-actions";
+
+                    const toggleBtn = document.createElement("button");
+                    toggleBtn.className = "mini ghost";
+                    toggleBtn.dataset.action = "toggle";
+                    toggleBtn.textContent = name.enabled ? "Disable" : "Enable";
+
+                    const editBtn = document.createElement("button");
+                    editBtn.className = "mini ghost";
+                    editBtn.dataset.action = "edit";
+                    editBtn.textContent = "Edit";
+
+                    const delBtn = document.createElement("button");
+                    delBtn.className = "mini danger";
+                    delBtn.dataset.action = "delete";
+                    delBtn.textContent = "Delete";
+
+                    actions.append(toggleBtn, editBtn, delBtn);
+                    li.append(left, actions);
+                    namesList.append(li);
+                });
+            }
+
+            const activeCount = enabledNames().length;
+            spinBtn.disabled = activeCount < 2 || state.isSpinning;
+            clearBtn.disabled = state.names.length === 0;
+            countMeta.textContent = `${state.names.length} name${state.names.length === 1 ? "" : "s"}`;
+            enabledMeta.textContent = `${activeCount} enabled`;
+        }
+
+        function drawWheel() {
+            const active = enabledNames();
+            ctx.clearRect(0, 0, wheel.width, wheel.height);
+
+            const cx = wheel.width / 2;
+            const cy = wheel.height / 2;
+            const radius = Math.min(cx, cy) - 10;
+
+            if (active.length === 0) {
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(255,255,255,0.08)";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.fillStyle = "rgba(255,255,255,0.08)";
+                ctx.font = "16px Inter, system-ui";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("Add names to spin", cx, cy);
+                return;
+            }
+
+            const step = (Math.PI * 2) / active.length;
+            active.forEach((item, i) => {
+                const start = i * step + state.rotation - Math.PI / 2;
+                const end = (i + 1) * step + state.rotation - Math.PI / 2;
+
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, start, end);
+                ctx.closePath();
+                ctx.fillStyle = palette[item.index % palette.length];
+                ctx.fill();
+
+                ctx.strokeStyle = "#0f1115";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(start + step / 2);
+                ctx.textAlign = "left";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "#0f1115";
+                ctx.font = "bold 15px Inter, system-ui";
+                ctx.fillText(item.text, radius * 0.6, 0);
+                ctx.restore();
+            });
+
+            // center cap
+            ctx.beginPath();
+            ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+            ctx.fillStyle = "#0f1115";
+            ctx.fill();
+            ctx.strokeStyle = "rgba(255,255,255,0.35)";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        function addName(text) {
+            const trimmed = text.trim();
+            if (!trimmed) return;
+            const exists = state.names.some(n => n.text.toLowerCase() === trimmed.toLowerCase());
+            if (exists) return;
+            state.names.push({ text: trimmed, enabled: true });
+            render();
+            nameInput.value = "";
+            nameInput.focus();
+        }
+
+        function handleListClick(event) {
+            const action = event.target.dataset.action;
+            if (!action) return;
+            const li = event.target.closest("li");
+            if (!li) return;
+            const index = Number(li.dataset.index);
+            if (Number.isNaN(index)) return;
+
+            if (action === "toggle") {
+                state.names[index].enabled = !state.names[index].enabled;
+                render();
+            } else if (action === "edit") {
+                const current = state.names[index].text;
+                const updated = prompt("Edit name", current);
+                if (updated === null) return;
+                const trimmed = updated.trim();
+                if (!trimmed) return;
+                const duplicate = state.names.some((n, i) => i !== index && n.text.toLowerCase() === trimmed.toLowerCase());
+                if (duplicate) return;
+                state.names[index].text = trimmed;
+                render();
+            } else if (action === "delete") {
+                state.names.splice(index, 1);
+                render();
+            }
+        }
+
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
+
+        function spinWheel() {
+            const active = enabledNames();
+            if (active.length < 2 || state.isSpinning) return;
+
+            state.isSpinning = true;
+            spinBtn.disabled = true;
+
+            const targetIdx = Math.floor(Math.random() * active.length);
+            const anglePer = (Math.PI * 2) / active.length;
+            const targetCenter = targetIdx * anglePer + anglePer / 2;
+            const spins = 4 + Math.floor(Math.random() * 2);
+            const current = state.rotation % (Math.PI * 2);
+            const finalRotation = current + spins * Math.PI * 2 + (Math.PI / 2 - targetCenter);
+
+            const start = performance.now();
+            const duration = 3200;
+
+            function animate(now) {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = easeOutCubic(progress);
+                state.rotation = current + (finalRotation - current) * eased;
+                drawWheel();
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    state.isSpinning = false;
+                    spinBtn.disabled = enabledNames().length < 2;
+                    state.selectedIndex = active[targetIdx].index;
+                    showWinner();
+                    startConfetti();
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        function showWinner() {
+            const idx = state.selectedIndex;
+            if (idx == null || idx < 0 || idx >= state.names.length) return;
+            winnerText.textContent = state.names[idx].text;
+            winnerModal.classList.add("show");
+        }
+
+        function hideWinner() {
+            winnerModal.classList.remove("show");
+            winnerText.textContent = "";
+            clearConfetti();
+        }
+
+        function disableWinner() {
+            const idx = state.selectedIndex;
+            if (idx != null && idx >= 0 && idx < state.names.length) {
+                state.names[idx].enabled = false;
+                render();
+            }
+            hideWinner();
+        }
+
+        function shuffleColors() {
+            palette = palette
+                .map(color => ({ color, sort: Math.random() }))
+                .sort((a, b) => a.sort - b.sort)
+                .map(item => item.color);
+            drawWheel();
+        }
+
+        // Confetti
+        function startConfetti() {
+            clearConfetti();
+            const pieces = 180;
+            const colors = ["#7c4dff", "#00e0b7", "#ff6b6b", "#f5a524", "#36cfc9"];
+            for (let i = 0; i < pieces; i++) {
+                confettiPieces.push({
+                    x: Math.random() * confettiCanvas.width,
+                    y: -10,
+                    size: Math.random() * 7 + 4,
+                    vy: Math.random() * 3 + 2,
+                    vx: (Math.random() - 0.5) * 3,
+                    color: colors[i % colors.length],
+                    rotation: Math.random() * 360,
+                    rotationSpeed: (Math.random() - 0.5) * 15
+                });
+            }
+            requestAnimationFrame(tickConfetti);
+        }
+
+        function tickConfetti() {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            for (let i = confettiPieces.length - 1; i >= 0; i--) {
+                const p = confettiPieces[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.05;
+                p.rotation += p.rotationSpeed;
+
+                confettiCtx.save();
+                confettiCtx.translate(p.x, p.y);
+                confettiCtx.rotate(p.rotation * Math.PI / 180);
+                confettiCtx.fillStyle = p.color;
+                confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                confettiCtx.restore();
+
+                if (p.y > confettiCanvas.height) {
+                    confettiPieces.splice(i, 1);
+                }
+            }
+            if (confettiPieces.length) {
+                requestAnimationFrame(tickConfetti);
+            }
+        }
+
+        function clearConfetti() {
+            confettiPieces.length = 0;
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        }
+
+        function render() {
+            renderList();
+            drawWheel();
+        }
+
+        // Event wiring
+        addForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            addName(nameInput.value);
+        });
+
+        namesList.addEventListener("click", handleListClick);
+        spinBtn.addEventListener("click", spinWheel);
+        shuffleBtn.addEventListener("click", shuffleColors);
+        keepBtn.addEventListener("click", hideWinner);
+        disableBtn.addEventListener("click", disableWinner);
+        winnerModal.addEventListener("click", (e) => {
+            if (e.target === winnerModal) hideWinner();
+        });
+
+        seedBtn.addEventListener("click", () => {
+            const samples = [
+                "Linus Torvalds", "Annie Easley", "Barbara Liskov",
+                "Mary Jackson", "Tim Berners-Lee", "Fei-Fei Li"
+            ];
+            samples.forEach(addName);
+        });
+
+        clearBtn.addEventListener("click", () => {
+            state.names = [];
+            state.selectedIndex = null;
+            render();
+            hideWinner();
+        });
+
+        window.addEventListener("resize", () => {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        });
+
+        // Init
+        confettiCanvas.width = window.innerWidth;
+        confettiCanvas.height = window.innerHeight;
+        render();
+        drawWheel();
+    </script>
+</body>
+</html>

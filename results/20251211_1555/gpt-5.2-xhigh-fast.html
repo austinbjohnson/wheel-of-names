@@ -1,0 +1,1517 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wheel of Names — Dark Mode</title>
+  <meta name="color-scheme" content="dark" />
+  <style>
+    :root{
+      --bg0:#0b0c10;
+      --bg1:#0f121a;
+      --panel:rgba(255,255,255,.06);
+      --panel2:rgba(255,255,255,.08);
+      --border:rgba(255,255,255,.10);
+      --border2:rgba(255,255,255,.16);
+      --text:#eef1ff;
+      --muted:rgba(238,241,255,.70);
+      --muted2:rgba(238,241,255,.55);
+      --shadow:rgba(0,0,0,.55);
+      --accent:#00ffb3;
+      --accent2:#7c5cff;
+      --danger:#ff3b66;
+      --warning:#ffb020;
+      --focus:#56a8ff;
+      --radius:16px;
+      --radiusSm:12px;
+      --ring:rgba(0,255,179,.25);
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:
+        radial-gradient(1200px 800px at 15% 10%, rgba(124,92,255,.22), transparent 55%),
+        radial-gradient(900px 700px at 90% 25%, rgba(0,255,179,.16), transparent 55%),
+        radial-gradient(1200px 900px at 40% 110%, rgba(255,59,102,.14), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    a{ color:inherit; text-decoration:none; }
+    button, input, textarea{ font:inherit; color:inherit; }
+    ::selection{ background:rgba(86,168,255,.35); }
+    :focus-visible{
+      outline:2px solid var(--focus);
+      outline-offset:2px;
+    }
+
+    .app{
+      min-height:100%;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      padding:28px 22px 12px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:16px;
+      max-width:1200px;
+      width:100%;
+      margin:0 auto;
+    }
+
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:28px;
+      letter-spacing:-.02em;
+      line-height:1.08;
+    }
+
+    .brand h1 .glow{
+      color:var(--accent);
+      text-shadow: 0 0 18px rgba(0,255,179,.35), 0 0 44px rgba(0,255,179,.16);
+    }
+
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.05);
+      border:1px solid var(--border);
+      color:var(--muted);
+      font-size:12px;
+      user-select:none;
+      white-space:nowrap;
+    }
+
+    main{
+      width:100%;
+      max-width:1200px;
+      margin:0 auto;
+      padding:18px 22px 24px;
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:18px;
+      align-items:start;
+      flex:1;
+    }
+
+    @media (max-width: 980px){
+      main{
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow: 0 18px 48px rgba(0,0,0,.35);
+      overflow:hidden;
+    }
+
+    .card .cardHead{
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .cardTitle{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    .cardTitle h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.02em;
+      text-transform:uppercase;
+      color:rgba(238,241,255,.88);
+    }
+
+    .cardTitle p{
+      margin:0;
+      font-size:12px;
+      color:var(--muted2);
+      line-height:1.4;
+    }
+
+    .cardBody{
+      padding:14px;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    .stack{ display:flex; flex-direction:column; gap:10px; }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    label.small{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    input[type="text"], textarea{
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.20);
+      color:var(--text);
+      padding:11px 12px;
+      outline:none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+
+    textarea{
+      min-height:86px;
+      resize:vertical;
+      line-height:1.4;
+    }
+
+    input[type="text"]:focus, textarea:focus{
+      border-color: rgba(86,168,255,.70);
+      box-shadow: 0 0 0 4px rgba(86,168,255,.15), inset 0 1px 0 rgba(255,255,255,.06);
+      background:rgba(0,0,0,.28);
+    }
+
+    .btn{
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      color:rgba(238,241,255,.92);
+      padding:10px 12px;
+      cursor:pointer;
+      user-select:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      transition: transform .08s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+      box-shadow: 0 10px 22px rgba(0,0,0,.22);
+    }
+
+    .btn:hover{ background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.18); }
+    .btn:active{ transform: translateY(1px); }
+    .btn[disabled]{ opacity:.55; cursor:not-allowed; box-shadow:none; }
+
+    .btn.primary{
+      border-color: rgba(0,255,179,.32);
+      background:
+        linear-gradient(180deg, rgba(0,255,179,.22), rgba(0,255,179,.11));
+      box-shadow: 0 12px 28px rgba(0,255,179,.14), 0 10px 28px rgba(0,0,0,.25);
+    }
+
+    .btn.primary:hover{
+      background:
+        linear-gradient(180deg, rgba(0,255,179,.28), rgba(0,255,179,.13));
+      border-color: rgba(0,255,179,.42);
+    }
+
+    .btn.big{
+      padding:12px 16px;
+      border-radius:14px;
+      font-weight:650;
+      letter-spacing:.01em;
+    }
+
+    .btn.ghost{
+      background:transparent;
+      box-shadow:none;
+    }
+
+    .btn.danger{
+      border-color: rgba(255,59,102,.40);
+      background: linear-gradient(180deg, rgba(255,59,102,.22), rgba(255,59,102,.11));
+    }
+    .btn.danger:hover{ border-color: rgba(255,59,102,.52); }
+
+    .btn.small{
+      padding:8px 10px;
+      border-radius:10px;
+      font-size:12px;
+      box-shadow:none;
+    }
+
+    .metaRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 0 0;
+      color:var(--muted2);
+      font-size:12px;
+    }
+
+    .counts{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .counts strong{ color:rgba(238,241,255,.92); font-weight:700; }
+
+    .divider{
+      height:1px;
+      background:rgba(255,255,255,.08);
+      margin:12px 0;
+    }
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin:0;
+      padding:0;
+      list-style:none;
+      max-height: 46vh;
+      overflow:auto;
+      padding-right: 2px;
+    }
+
+    @media (max-width:980px){
+      .list{ max-height: 38vh; }
+    }
+
+    .list::-webkit-scrollbar{ width:10px; }
+    .list::-webkit-scrollbar-thumb{
+      background:rgba(255,255,255,.10);
+      border-radius:999px;
+      border:2px solid rgba(0,0,0,.0);
+      background-clip:padding-box;
+    }
+    .list::-webkit-scrollbar-thumb:hover{ background:rgba(255,255,255,.16); background-clip:padding-box; }
+
+    .item{
+      display:grid;
+      grid-template-columns: 32px 1fr auto;
+      gap:10px;
+      align-items:center;
+      padding:10px 10px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.16);
+      border-radius:14px;
+    }
+
+    .item.disabled{
+      opacity:.62;
+      background:rgba(0,0,0,.10);
+    }
+
+    .toggle{
+      width:32px;
+      height:32px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.04);
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      user-select:none;
+      position:relative;
+    }
+
+    .toggle input{
+      position:absolute;
+      opacity:0;
+      inset:0;
+      cursor:pointer;
+    }
+
+    .check{
+      width:16px;
+      height:16px;
+      border-radius:6px;
+      border:1px solid rgba(255,255,255,.22);
+      background:rgba(255,255,255,.06);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+      transition: background .12s ease, border-color .12s ease, box-shadow .12s ease;
+    }
+
+    .toggle input:checked + .check{
+      background: rgba(0,255,179,.40);
+      border-color: rgba(0,255,179,.72);
+      box-shadow: 0 0 0 4px rgba(0,255,179,.10);
+    }
+
+    .nameText{
+      font-size:14px;
+      line-height:1.2;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .editInput{
+      width:100%;
+      padding:9px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(0,0,0,.24);
+    }
+
+    .itemActions{
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
+
+    .iconBtn{
+      width:34px;
+      height:34px;
+      padding:0;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.05);
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+      transition: background .15s ease, border-color .15s ease, transform .08s ease;
+    }
+
+    .iconBtn:hover{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); }
+    .iconBtn:active{ transform: translateY(1px); }
+    .iconBtn.danger{ border-color:rgba(255,59,102,.40); background:rgba(255,59,102,.12); }
+    .iconBtn.danger:hover{ border-color:rgba(255,59,102,.55); background:rgba(255,59,102,.16); }
+
+    .icon{
+      width:18px;
+      height:18px;
+      fill: currentColor;
+      opacity:.90;
+    }
+
+    /* Right side / wheel */
+    .wheelWrap{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:center;
+      padding:14px;
+    }
+
+    .wheelStage{
+      width:min(520px, 86vw);
+      aspect-ratio: 1 / 1;
+      position:relative;
+      border-radius:999px;
+      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.10), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:
+        0 24px 60px rgba(0,0,0,.55),
+        0 0 0 1px rgba(0,255,179,.10) inset,
+        0 0 0 1px rgba(124,92,255,.08) inset;
+      overflow:hidden;
+    }
+
+    canvas#wheelCanvas{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+    }
+
+    .pointer{
+      position:absolute;
+      left:50%;
+      top:-12px;
+      transform: translateX(-50%);
+      width:0;
+      height:0;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-bottom: 28px solid var(--accent);
+      filter: drop-shadow(0 10px 16px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(0,255,179,.25));
+    }
+
+    .wheelActions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+
+    .winnerBanner{
+      width:100%;
+      max-width:min(520px, 86vw);
+      border-radius:18px;
+      border:1px solid rgba(0,255,179,.25);
+      background:linear-gradient(180deg, rgba(0,255,179,.16), rgba(0,255,179,.08));
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      box-shadow: 0 14px 34px rgba(0,255,179,.10), 0 16px 44px rgba(0,0,0,.35);
+    }
+
+    .winnerBanner .label{
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:rgba(238,241,255,.78);
+    }
+
+    .winnerBanner .name{
+      font-size:18px;
+      font-weight:750;
+      letter-spacing:-.01em;
+      text-shadow: 0 1px 0 rgba(0,0,0,.25);
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width:70%;
+      text-align:right;
+    }
+
+    .hint{
+      max-width:min(520px, 86vw);
+      color:var(--muted2);
+      font-size:12px;
+      line-height:1.5;
+      text-align:center;
+    }
+
+    footer{
+      max-width:1200px;
+      width:100%;
+      margin:0 auto;
+      padding:0 22px 24px;
+      color:rgba(238,241,255,.48);
+      font-size:12px;
+      line-height:1.45;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    /* Modal */
+    .backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.62);
+      display:grid;
+      place-items:center;
+      padding:22px;
+      z-index:50;
+    }
+
+    .modal{
+      width:min(520px, 92vw);
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.14);
+      background:linear-gradient(180deg, rgba(26,26,26,.92), rgba(18,19,26,.92));
+      box-shadow: 0 24px 80px rgba(0,0,0,.65);
+      padding:16px 16px 14px;
+      position:relative;
+    }
+
+    .modal h3{
+      margin:0 0 8px;
+      font-size:16px;
+      letter-spacing:-.01em;
+    }
+
+    .modal p{
+      margin:0 0 12px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+    }
+
+    .winnerBig{
+      font-size:24px;
+      font-weight:800;
+      letter-spacing:-.02em;
+      margin:0 0 10px;
+      color:var(--accent);
+      text-shadow: 0 0 18px rgba(0,255,179,.22);
+      overflow-wrap:anywhere;
+    }
+
+    .modalActions{
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+
+    .modalClose{
+      position:absolute;
+      top:10px;
+      right:10px;
+      width:36px;
+      height:36px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.05);
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+      font-size:18px;
+      line-height:1;
+    }
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform: translateX(-50%);
+      max-width:min(560px, 92vw);
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(18,19,26,.88);
+      color:rgba(238,241,255,.92);
+      box-shadow: 0 16px 48px rgba(0,0,0,.55);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index:60;
+    }
+    .toast.show{
+      opacity:1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    /* Confetti */
+    canvas#confettiCanvas{
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      pointer-events:none;
+      z-index:40;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .btn, .iconBtn, .toast{ transition:none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <h1><span class="glow">Wheel</span> of Names</h1>
+        <p class="sub">Dark mode by default. Spin to pick a winner — disable names to remove them from future spins.</p>
+      </div>
+      <div class="pill" title="State is saved in your browser on this device.">
+        <span aria-hidden="true">●</span>
+        <span>Local state saved</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="card" aria-label="Manage names">
+        <div class="cardHead">
+          <div class="cardTitle">
+            <h2>Names</h2>
+            <p>Add, edit, remove, and enable/disable names anytime.</p>
+          </div>
+        </div>
+        <div class="cardBody stack">
+          <div class="row">
+            <input id="nameInput" type="text" inputmode="text" autocomplete="off" placeholder="Add a name… (press Enter)" aria-label="Add a name" />
+            <button id="addBtn" class="btn primary" type="button">Add</button>
+          </div>
+
+          <div class="field">
+            <label class="small" for="bulkInput">Add many (one per line or comma/semicolon separated)</label>
+            <textarea id="bulkInput" placeholder="e.g.\nAda\nLinus\nGrace, Alan; Margaret"></textarea>
+            <div class="row" style="justify-content:space-between; flex-wrap:wrap;">
+              <div class="row" style="flex-wrap:wrap;">
+                <button id="bulkAddBtn" class="btn" type="button">Add many</button>
+                <button id="sampleBtn" class="btn ghost" type="button">Load sample</button>
+              </div>
+              <div class="counts" aria-label="Counts">
+                <span>Enabled: <strong id="enabledCount">0</strong></span>
+                <span>Total: <strong id="totalCount">0</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="row" style="justify-content:space-between; flex-wrap:wrap;">
+            <div class="row" style="flex-wrap:wrap;">
+              <button id="enableAllBtn" class="btn small" type="button">Enable all</button>
+              <button id="disableAllBtn" class="btn small" type="button">Disable all</button>
+            </div>
+            <button id="clearAllBtn" class="btn small danger" type="button">Clear list</button>
+          </div>
+
+          <ul id="nameList" class="list" aria-label="Name list"></ul>
+
+          <div class="metaRow">
+            <span id="listHint">Tip: Disable a name to remove it from the wheel.</span>
+            <span id="emptyHint" style="display:none; color:rgba(255,176,32,.85);">Add at least 1 enabled name to spin.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-label="Wheel">
+        <div class="cardHead">
+          <div class="cardTitle">
+            <h2>Wheel</h2>
+            <p>Spin selects from enabled names only.</p>
+          </div>
+        </div>
+        <div class="wheelWrap">
+          <div class="wheelStage" id="wheelStage" aria-label="Spinning wheel">
+            <canvas id="wheelCanvas"></canvas>
+            <div class="pointer" aria-hidden="true"></div>
+          </div>
+
+          <div class="wheelActions">
+            <button id="spinBtn" class="btn primary big" type="button">Spin</button>
+            <button id="clearWinnerBtn" class="btn big" type="button">Clear winner</button>
+          </div>
+
+          <div id="winnerBanner" class="winnerBanner" hidden aria-live="polite">
+            <div class="label">Winner</div>
+            <div id="winnerName" class="name"></div>
+          </div>
+
+          <p class="hint">After the spin, choose <strong>Keep</strong> or <strong>Disable</strong> the winner. You can also toggle names manually in the list.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Wheel of Names (v3 prompt) — Dark theme • Canvas rendering • Confetti on win</span>
+      <span>Keyboard: <strong>Enter</strong> to add • <strong>Esc</strong> to close dialog</span>
+    </footer>
+  </div>
+
+  <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+
+  <div id="modalBackdrop" class="backdrop" hidden>
+    <div id="winnerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc" tabindex="-1">
+      <button id="modalCloseBtn" class="modalClose" type="button" aria-label="Close dialog">×</button>
+      <h3 id="modalTitle">We have a winner!</h3>
+      <div id="modalWinner" class="winnerBig"></div>
+      <p id="modalDesc">Keep the name eligible for future spins, or disable it from the wheel.</p>
+      <div class="modalActions">
+        <button id="keepBtn" class="btn" type="button">Keep</button>
+        <button id="disableBtn" class="btn danger" type="button">Disable</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const TAU = Math.PI * 2;
+      const STORAGE_KEY = 'wheelOfNames.v3.state';
+
+      const els = {
+        nameInput: document.getElementById('nameInput'),
+        addBtn: document.getElementById('addBtn'),
+        bulkInput: document.getElementById('bulkInput'),
+        bulkAddBtn: document.getElementById('bulkAddBtn'),
+        sampleBtn: document.getElementById('sampleBtn'),
+        enableAllBtn: document.getElementById('enableAllBtn'),
+        disableAllBtn: document.getElementById('disableAllBtn'),
+        clearAllBtn: document.getElementById('clearAllBtn'),
+        nameList: document.getElementById('nameList'),
+        enabledCount: document.getElementById('enabledCount'),
+        totalCount: document.getElementById('totalCount'),
+        listHint: document.getElementById('listHint'),
+        emptyHint: document.getElementById('emptyHint'),
+
+        wheelStage: document.getElementById('wheelStage'),
+        wheelCanvas: document.getElementById('wheelCanvas'),
+        spinBtn: document.getElementById('spinBtn'),
+        clearWinnerBtn: document.getElementById('clearWinnerBtn'),
+        winnerBanner: document.getElementById('winnerBanner'),
+        winnerName: document.getElementById('winnerName'),
+
+        confettiCanvas: document.getElementById('confettiCanvas'),
+
+        modalBackdrop: document.getElementById('modalBackdrop'),
+        winnerModal: document.getElementById('winnerModal'),
+        modalWinner: document.getElementById('modalWinner'),
+        modalCloseBtn: document.getElementById('modalCloseBtn'),
+        keepBtn: document.getElementById('keepBtn'),
+        disableBtn: document.getElementById('disableBtn'),
+
+        toast: document.getElementById('toast'),
+      };
+
+      const prefersReducedMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+      function uid() {
+        try {
+          if (crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+        } catch (_) {}
+        return 'id-' + Math.random().toString(16).slice(2) + '-' + Date.now().toString(16);
+      }
+
+      function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
+      function normalizeAngle(a) {
+        a = a % TAU;
+        if (a < 0) a += TAU;
+        return a;
+      }
+      function easeOutQuint(t) { return 1 - Math.pow(1 - t, 5); }
+      function nowMs() { return (performance && performance.now) ? performance.now() : Date.now(); }
+
+      function sanitizeName(raw) {
+        if (typeof raw !== 'string') return '';
+        const t = raw.replace(/\s+/g, ' ').trim();
+        return t.slice(0, 80);
+      }
+
+      function parseMany(text) {
+        if (typeof text !== 'string') return [];
+        return text
+          .split(/[\n,;]+/g)
+          .map(s => sanitizeName(s))
+          .filter(Boolean);
+      }
+
+      function defaultEntries() {
+        return [
+          { id: uid(), name: 'Ada Lovelace', enabled: true },
+          { id: uid(), name: 'Grace Hopper', enabled: true },
+          { id: uid(), name: 'Alan Turing', enabled: true },
+          { id: uid(), name: 'Katherine Johnson', enabled: true },
+          { id: uid(), name: 'Margaret Hamilton', enabled: true },
+          { id: uid(), name: 'Linus Torvalds', enabled: true },
+        ];
+      }
+
+      function coerceEntry(e) {
+        const name = sanitizeName(e && e.name);
+        if (!name) return null;
+        return {
+          id: (e && typeof e.id === 'string' && e.id) ? e.id : uid(),
+          name,
+          enabled: !(e && e.enabled === false),
+        };
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) throw new Error('missing');
+          const parsed = JSON.parse(raw);
+          const entries = Array.isArray(parsed.entries) ? parsed.entries.map(coerceEntry).filter(Boolean) : [];
+          const rotation = (parsed && typeof parsed.rotation === 'number') ? parsed.rotation : 0;
+          const lastWinnerId = (parsed && typeof parsed.lastWinnerId === 'string') ? parsed.lastWinnerId : null;
+          return {
+            entries: entries.length ? entries : defaultEntries(),
+            rotation: normalizeAngle(rotation),
+            lastWinnerId,
+          };
+        } catch (_) {
+          return { entries: defaultEntries(), rotation: 0, lastWinnerId: null };
+        }
+      }
+
+      let state = loadState();
+      let rotation = state.rotation || 0;
+      let lastWinnerId = state.lastWinnerId || null;
+      let editingId = null;
+      let isSpinning = false;
+      let activeWinnerForModal = null;
+      let lastFocusEl = null;
+
+      function saveState() {
+        const payload = {
+          entries: state.entries,
+          rotation: normalizeAngle(rotation),
+          lastWinnerId,
+        };
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); } catch (_) {}
+      }
+
+      function getEnabled() {
+        return state.entries.filter(e => e.enabled);
+      }
+
+      function showToast(msg) {
+        if (!els.toast) return;
+        els.toast.textContent = msg;
+        els.toast.classList.add('show');
+        window.clearTimeout(showToast._t);
+        showToast._t = window.setTimeout(() => els.toast.classList.remove('show'), 1800);
+      }
+
+      function setWinner(id) {
+        lastWinnerId = id || null;
+        saveState();
+        renderWinner();
+        drawWheel();
+      }
+
+      function renderWinner() {
+        const winner = lastWinnerId ? state.entries.find(e => e.id === lastWinnerId) : null;
+        if (!winner) {
+          els.winnerBanner.hidden = true;
+          els.winnerName.textContent = '';
+          return;
+        }
+        els.winnerBanner.hidden = false;
+        els.winnerName.textContent = winner.name + (winner.enabled ? '' : ' (disabled)');
+      }
+
+      function renderCounts() {
+        const total = state.entries.length;
+        const enabled = getEnabled().length;
+        els.totalCount.textContent = String(total);
+        els.enabledCount.textContent = String(enabled);
+        els.emptyHint.style.display = enabled ? 'none' : 'inline';
+      }
+
+      const ICONS = {
+        edit: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.8 9.95l-3.75-3.75L3 17.25zm2.92 2.83H5v-.92l8.06-8.06.92.92L5.92 20.08zM20.7 7.04a1 1 0 0 0 0-1.41L18.37 3.3a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75L20.7 7.04z"/></svg>',
+        trash: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z"/></svg>',
+        check: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>',
+        x: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.3 19.71 2.89 18.29 9.17 12 2.89 5.71 4.3 4.29 10.59 10.6l6.3-6.31z"/></svg>',
+      };
+
+      function makeIconBtn({ title, html, danger, onClick }) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'iconBtn' + (danger ? ' danger' : '');
+        b.setAttribute('aria-label', title);
+        b.title = title;
+        b.innerHTML = html;
+        b.addEventListener('click', onClick);
+        return b;
+      }
+
+      function renderList() {
+        els.nameList.textContent = '';
+
+        if (!state.entries.length) {
+          const empty = document.createElement('div');
+          empty.style.color = 'rgba(238,241,255,.55)';
+          empty.style.fontSize = '13px';
+          empty.style.padding = '10px 2px';
+          empty.textContent = 'No names yet — add some above.';
+          els.nameList.appendChild(empty);
+          return;
+        }
+
+        for (const entry of state.entries) {
+          const li = document.createElement('li');
+          li.className = 'item' + (entry.enabled ? '' : ' disabled');
+          li.dataset.id = entry.id;
+
+          const toggle = document.createElement('label');
+          toggle.className = 'toggle';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = !!entry.enabled;
+          cb.addEventListener('change', () => {
+            entry.enabled = cb.checked;
+            li.classList.toggle('disabled', !entry.enabled);
+            saveState();
+            renderCounts();
+            drawWheel();
+            renderWinner();
+          });
+          const check = document.createElement('span');
+          check.className = 'check';
+          toggle.appendChild(cb);
+          toggle.appendChild(check);
+
+          const center = document.createElement('div');
+          if (editingId === entry.id) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'editInput';
+            input.value = entry.name;
+            input.setAttribute('aria-label', 'Edit name');
+            input.addEventListener('keydown', (ev) => {
+              if (ev.key === 'Enter') {
+                ev.preventDefault();
+                commitEdit(entry.id, input.value);
+              }
+              if (ev.key === 'Escape') {
+                ev.preventDefault();
+                editingId = null;
+                renderList();
+              }
+            });
+            center.appendChild(input);
+            queueMicrotask(() => input.focus());
+          } else {
+            const name = document.createElement('div');
+            name.className = 'nameText';
+            name.textContent = entry.name;
+            name.title = entry.name;
+            name.addEventListener('dblclick', () => {
+              editingId = entry.id;
+              renderList();
+            });
+            center.appendChild(name);
+          }
+
+          const actions = document.createElement('div');
+          actions.className = 'itemActions';
+
+          if (editingId === entry.id) {
+            actions.appendChild(makeIconBtn({
+              title: 'Save',
+              html: ICONS.check,
+              onClick: () => {
+                const input = li.querySelector('input.editInput');
+                commitEdit(entry.id, input ? input.value : entry.name);
+              }
+            }));
+            actions.appendChild(makeIconBtn({
+              title: 'Cancel',
+              html: ICONS.x,
+              onClick: () => {
+                editingId = null;
+                renderList();
+              }
+            }));
+          } else {
+            actions.appendChild(makeIconBtn({
+              title: 'Edit',
+              html: ICONS.edit,
+              onClick: () => {
+                editingId = entry.id;
+                renderList();
+              }
+            }));
+            actions.appendChild(makeIconBtn({
+              title: 'Remove',
+              html: ICONS.trash,
+              danger: true,
+              onClick: () => {
+                removeEntry(entry.id);
+              }
+            }));
+          }
+
+          li.appendChild(toggle);
+          li.appendChild(center);
+          li.appendChild(actions);
+
+          els.nameList.appendChild(li);
+        }
+      }
+
+      function commitEdit(id, value) {
+        const entry = state.entries.find(e => e.id === id);
+        if (!entry) return;
+        const next = sanitizeName(value);
+        if (!next) {
+          showToast('Name can’t be empty.');
+          return;
+        }
+        entry.name = next;
+        editingId = null;
+        saveState();
+        renderList();
+        drawWheel();
+        renderWinner();
+      }
+
+      function removeEntry(id) {
+        const idx = state.entries.findIndex(e => e.id === id);
+        if (idx < 0) return;
+        const removed = state.entries[idx];
+        state.entries.splice(idx, 1);
+        if (lastWinnerId === id) lastWinnerId = null;
+        saveState();
+        renderCounts();
+        renderList();
+        drawWheel();
+        renderWinner();
+        showToast(`Removed "${removed.name}".`);
+      }
+
+      // Wheel drawing
+      const wheelCtx = els.wheelCanvas.getContext('2d', { alpha: true });
+      let wheelSize = 0;
+
+      function colorForIndex(i) {
+        // Vibrant, distinct hues with slight variation
+        const hue = (i * 137.508) % 360;
+        const sat = 84;
+        const light = 48;
+        return `hsl(${hue} ${sat}% ${light}%)`;
+      }
+
+      function fitText(ctx, text, maxWidth) {
+        if (ctx.measureText(text).width <= maxWidth) return text;
+        const ell = '…';
+        let t = text;
+        while (t.length > 1 && ctx.measureText(t + ell).width > maxWidth) t = t.slice(0, -1);
+        return t + ell;
+      }
+
+      function drawWheel() {
+        if (!wheelCtx || !wheelSize) return;
+
+        const size = wheelSize;
+        const ctx = wheelCtx;
+        ctx.clearRect(0, 0, size, size);
+
+        const enabled = getEnabled();
+        const n = enabled.length;
+
+        const cx = size / 2;
+        const cy = size / 2;
+        const radius = Math.max(10, (size / 2) - 12);
+
+        // Base ring
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.beginPath();
+        ctx.arc(0, 0, radius + 6, 0, TAU);
+        ctx.strokeStyle = 'rgba(255,255,255,.10)';
+        ctx.lineWidth = 12;
+        ctx.stroke();
+        ctx.restore();
+
+        if (!n) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.beginPath();
+          ctx.arc(0, 0, radius, 0, TAU);
+          ctx.fillStyle = 'rgba(255,255,255,.03)';
+          ctx.fill();
+          ctx.setLineDash([6, 8]);
+          ctx.strokeStyle = 'rgba(255,255,255,.14)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = 'rgba(238,241,255,.70)';
+          ctx.font = '600 14px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('Add & enable at least 1 name', 0, -6);
+          ctx.font = '12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+          ctx.fillStyle = 'rgba(238,241,255,.55)';
+          ctx.fillText('to spin the wheel', 0, 14);
+          ctx.restore();
+          updateSpinButton();
+          return;
+        }
+
+        const slice = TAU / n;
+        const fontSize = clamp(Math.floor(22 - n * 0.55), 12, 18);
+        const textMaxWidth = radius * 0.78;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rotation);
+
+        for (let i = 0; i < n; i++) {
+          const start = i * slice;
+          const end = start + slice;
+
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.arc(0, 0, radius, start, end);
+          ctx.closePath();
+
+          ctx.fillStyle = colorForIndex(i);
+          ctx.fill();
+
+          // Thin dividers
+          ctx.strokeStyle = 'rgba(255,255,255,.10)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Winner highlight
+          if (lastWinnerId && enabled[i].id === lastWinnerId) {
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,255,179,.35)';
+            ctx.shadowBlur = 18;
+            ctx.strokeStyle = 'rgba(255,255,255,.86)';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          // Text
+          const mid = start + slice / 2;
+          const global = normalizeAngle(mid + rotation);
+          ctx.save();
+          ctx.rotate(mid);
+          ctx.translate(radius * 0.66, 0);
+          if (global > Math.PI / 2 && global < (3 * Math.PI) / 2) {
+            ctx.rotate(Math.PI);
+          }
+          ctx.font = `700 ${fontSize}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial`;
+          ctx.fillStyle = 'rgba(15,18,26,.88)';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const t = fitText(ctx, enabled[i].name, textMaxWidth);
+
+          // subtle outline for contrast
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = 'rgba(255,255,255,.35)';
+          ctx.strokeText(t, 0, 0);
+          ctx.fillText(t, 0, 0);
+          ctx.restore();
+        }
+
+        // Center cap
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(0, 0, Math.max(18, radius * 0.14), 0, TAU);
+        ctx.fillStyle = 'rgba(15,18,26,.88)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,255,179,.22)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.restore();
+
+        updateSpinButton();
+      }
+
+      function updateSpinButton() {
+        const enabledCount = getEnabled().length;
+        const ok = enabledCount > 0 && !isSpinning;
+        els.spinBtn.disabled = !ok;
+        els.spinBtn.textContent = isSpinning ? 'Spinning…' : 'Spin';
+      }
+
+      // Canvas sizing (sharp on HiDPI)
+      function resizeWheelCanvas() {
+        const rect = els.wheelStage.getBoundingClientRect();
+        const size = Math.max(240, Math.floor(Math.min(rect.width, rect.height)));
+        const dpr = window.devicePixelRatio || 1;
+        wheelSize = size;
+
+        els.wheelCanvas.width = Math.round(size * dpr);
+        els.wheelCanvas.height = Math.round(size * dpr);
+        // map drawing units to CSS pixels
+        wheelCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        drawWheel();
+      }
+
+      // Confetti
+      const confettiCtx = els.confettiCanvas.getContext('2d', { alpha: true });
+      let confettiRaf = 0;
+      let confettiParticles = [];
+      let confettiStart = 0;
+
+      function resizeConfettiCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        const w = Math.floor(window.innerWidth);
+        const h = Math.floor(window.innerHeight);
+        els.confettiCanvas.width = Math.round(w * dpr);
+        els.confettiCanvas.height = Math.round(h * dpr);
+        confettiCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function startConfetti() {
+        if (!confettiCtx) return;
+        if (prefersReducedMotion) return;
+
+        resizeConfettiCanvas();
+        confettiParticles = [];
+        confettiStart = nowMs();
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const count = clamp(Math.floor(w / 9), 120, 200);
+        const palette = ['#00ffb3', '#7c5cff', '#ff3b66', '#ffb020', '#4dd6ff', '#b6ff59', '#ffffff'];
+
+        for (let i = 0; i < count; i++) {
+          confettiParticles.push({
+            x: Math.random() * w,
+            y: -20 - Math.random() * h * 0.25,
+            vx: (Math.random() - 0.5) * 3.2,
+            vy: 2.8 + Math.random() * 4.2,
+            rot: Math.random() * TAU,
+            vr: (Math.random() - 0.5) * 0.22,
+            size: 6 + Math.random() * 7,
+            color: palette[i % palette.length],
+            life: 1200 + Math.random() * 900,
+          });
+        }
+
+        window.cancelAnimationFrame(confettiRaf);
+        confettiRaf = window.requestAnimationFrame(tickConfetti);
+      }
+
+      function tickConfetti() {
+        const t = nowMs();
+        const elapsed = t - confettiStart;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+
+        confettiCtx.clearRect(0, 0, w, h);
+
+        for (const p of confettiParticles) {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.028; // gravity
+          p.rot += p.vr;
+
+          const alpha = clamp(1 - (elapsed / p.life), 0, 1);
+          confettiCtx.save();
+          confettiCtx.globalAlpha = alpha;
+          confettiCtx.translate(p.x, p.y);
+          confettiCtx.rotate(p.rot);
+          confettiCtx.fillStyle = p.color;
+          confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.66);
+          confettiCtx.restore();
+        }
+
+        if (elapsed < 2200) {
+          confettiRaf = window.requestAnimationFrame(tickConfetti);
+        } else {
+          confettiCtx.clearRect(0, 0, w, h);
+        }
+      }
+
+      // Spinning logic
+      function spin() {
+        if (isSpinning) return;
+        const enabled = getEnabled();
+        const n = enabled.length;
+        if (!n) {
+          showToast('Add at least 1 enabled name to spin.');
+          return;
+        }
+
+        isSpinning = true;
+        updateSpinButton();
+
+        const winnerIndex = Math.floor(Math.random() * n);
+        const slice = TAU / n;
+        const targetMod = normalizeAngle((-Math.PI / 2) - (winnerIndex + 0.5) * slice);
+
+        const currentMod = normalizeAngle(rotation);
+        const delta = normalizeAngle(targetMod - currentMod);
+        const extraSpins = 4 + Math.floor(Math.random() * 4); // 4–7
+        const finalRotation = rotation + extraSpins * TAU + delta;
+
+        const duration = prefersReducedMotion ? 0 : (3200 + Math.random() * 800);
+        const startTime = nowMs();
+        const startRotation = rotation;
+
+        function frame() {
+          const t = duration ? clamp((nowMs() - startTime) / duration, 0, 1) : 1;
+          const eased = easeOutQuint(t);
+          rotation = startRotation + (finalRotation - startRotation) * eased;
+          drawWheel();
+
+          if (t < 1) {
+            window.requestAnimationFrame(frame);
+            return;
+          }
+
+          rotation = normalizeAngle(finalRotation);
+          isSpinning = false;
+          updateSpinButton();
+          drawWheel();
+
+          const winner = enabled[winnerIndex];
+          setWinner(winner.id);
+          showToast(`Winner: ${winner.name}`);
+          startConfetti();
+          openWinnerModal(winner);
+        }
+
+        window.requestAnimationFrame(frame);
+      }
+
+      // Modal
+      function openWinnerModal(winnerEntry) {
+        activeWinnerForModal = winnerEntry;
+        els.modalWinner.textContent = winnerEntry ? winnerEntry.name : '';
+        lastFocusEl = document.activeElement;
+        els.modalBackdrop.hidden = false;
+        queueMicrotask(() => {
+          els.keepBtn.focus();
+        });
+      }
+
+      function closeWinnerModal() {
+        els.modalBackdrop.hidden = true;
+        activeWinnerForModal = null;
+        if (lastFocusEl && typeof lastFocusEl.focus === 'function') lastFocusEl.focus();
+      }
+
+      // Wire up events
+      els.addBtn.addEventListener('click', () => {
+        const name = sanitizeName(els.nameInput.value);
+        if (!name) return showToast('Type a name first.');
+        state.entries.unshift({ id: uid(), name, enabled: true });
+        els.nameInput.value = '';
+        saveState();
+        renderCounts();
+        renderList();
+        drawWheel();
+        showToast(`Added "${name}".`);
+      });
+
+      els.nameInput.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          els.addBtn.click();
+        }
+      });
+
+      els.bulkAddBtn.addEventListener('click', () => {
+        const names = parseMany(els.bulkInput.value);
+        if (!names.length) return showToast('Paste one or more names first.');
+        for (let i = names.length - 1; i >= 0; i--) {
+          state.entries.unshift({ id: uid(), name: names[i], enabled: true });
+        }
+        els.bulkInput.value = '';
+        saveState();
+        renderCounts();
+        renderList();
+        drawWheel();
+        showToast(`Added ${names.length} name${names.length === 1 ? '' : 's'}.`);
+      });
+
+      els.sampleBtn.addEventListener('click', () => {
+        state.entries = defaultEntries();
+        editingId = null;
+        lastWinnerId = null;
+        rotation = 0;
+        saveState();
+        renderCounts();
+        renderList();
+        renderWinner();
+        drawWheel();
+        showToast('Loaded sample names.');
+      });
+
+      els.enableAllBtn.addEventListener('click', () => {
+        for (const e of state.entries) e.enabled = true;
+        saveState();
+        renderCounts();
+        renderList();
+        drawWheel();
+        showToast('Enabled all names.');
+      });
+
+      els.disableAllBtn.addEventListener('click', () => {
+        for (const e of state.entries) e.enabled = false;
+        saveState();
+        renderCounts();
+        renderList();
+        drawWheel();
+        showToast('Disabled all names.');
+      });
+
+      els.clearAllBtn.addEventListener('click', () => {
+        const ok = window.confirm('Clear the entire list? This cannot be undone.');
+        if (!ok) return;
+        state.entries = [];
+        editingId = null;
+        lastWinnerId = null;
+        rotation = 0;
+        saveState();
+        renderCounts();
+        renderList();
+        renderWinner();
+        drawWheel();
+        showToast('Cleared list.');
+      });
+
+      els.spinBtn.addEventListener('click', spin);
+
+      els.clearWinnerBtn.addEventListener('click', () => {
+        if (!lastWinnerId) return showToast('No winner to clear.');
+        setWinner(null);
+        showToast('Cleared winner highlight.');
+      });
+
+      els.modalBackdrop.addEventListener('click', (ev) => {
+        if (ev.target === els.modalBackdrop) closeWinnerModal();
+      });
+      els.modalCloseBtn.addEventListener('click', closeWinnerModal);
+      els.keepBtn.addEventListener('click', closeWinnerModal);
+      els.disableBtn.addEventListener('click', () => {
+        if (!activeWinnerForModal) return closeWinnerModal();
+        const entry = state.entries.find(e => e.id === activeWinnerForModal.id);
+        if (entry) {
+          entry.enabled = false;
+          saveState();
+          renderCounts();
+          renderList();
+          drawWheel();
+          renderWinner();
+          showToast(`Disabled "${entry.name}".`);
+        }
+        closeWinnerModal();
+      });
+
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape' && !els.modalBackdrop.hidden) {
+          ev.preventDefault();
+          closeWinnerModal();
+          return;
+        }
+      });
+
+      // Resize handlers
+      const ro = new ResizeObserver(() => resizeWheelCanvas());
+      ro.observe(els.wheelStage);
+      window.addEventListener('resize', () => {
+        resizeConfettiCanvas();
+        resizeWheelCanvas();
+      });
+
+      // Initial render
+      renderCounts();
+      renderList();
+      renderWinner();
+      resizeConfettiCanvas();
+      resizeWheelCanvas();
+      drawWheel();
+      updateSpinButton();
+    })();
+  </script>
+</body>
+</html>
+
