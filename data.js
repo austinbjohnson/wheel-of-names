@@ -4,6 +4,24 @@
 
 window.benchmarkData = [
     {
+        id: '20260205_0952',
+        timestamp: '2026-02-05 09:52',
+        promptVersion: 'v3',
+        evalFile: 'evaluations/20260205_0952_results.md',
+        models: [
+            {
+                id: 'opus-high',
+                name: 'Claude 4.5 Opus High',
+                path: 'results/20260205_0952/claude-4.5-opus-high.html'
+            },
+            {
+                id: 'fudge-eap',
+                name: 'Claude Fudge EAP',
+                path: 'results/20260205_0952/claude-fudge-eap.html'
+            }
+        ]
+    },
+    {
         id: '20251211_1555',
         timestamp: '2025-12-11 15:55',
         promptVersion: 'v3',
