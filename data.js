@@ -4,6 +4,58 @@
 
 window.benchmarkData = [
     {
+        id: '20260522_1545',
+        timestamp: '2026-05-22 15:45',
+        promptVersion: 'v4',
+        evalFile: 'evaluations/20260522_1545_results.md',
+        models: [
+            {
+                id: 'aqm20260522',
+                name: 'aqm20260522 — medium (Claude Code CLI)',
+                path: 'results/20260522_1545/aqm20260522.html'
+            }
+        ]
+    },
+    {
+        id: '20260522_1530',
+        timestamp: '2026-05-22 15:30',
+        promptVersion: 'v4',
+        evalFile: 'evaluations/20260522_1530_results.md',
+        models: [
+            {
+                id: 'opus-4.6-fast',
+                name: 'Claude 4.6 Opus Fast (Claude Code Desktop)',
+                path: 'results/20260522_1530/claude-4.6-opus-fast.html'
+            }
+        ]
+    },
+    {
+        id: '20260522_1426',
+        timestamp: '2026-05-22 14:26',
+        promptVersion: 'v4',
+        evalFile: 'evaluations/20260522_1426_results.md',
+        models: [
+            {
+                id: 'gpt-5.5-codex-desktop-medium',
+                name: 'GPT 5.5 Medium (Codex Desktop)',
+                path: 'results/20260522_1426/gpt-5.5-codex-desktop-medium.html'
+            }
+        ]
+    },
+    {
+        id: '20260522_1424',
+        timestamp: '2026-05-22 14:24',
+        promptVersion: 'v4',
+        evalFile: 'evaluations/20260522_1424_results.md',
+        models: [
+            {
+                id: 'opus-4.7-medium-fast',
+                name: 'Claude 4.7 Opus Medium Fast (Claude Code Desktop)',
+                path: 'results/20260522_1424/claude-4.7-opus-medium-fast.html'
+            }
+        ]
+    },
+    {
         id: '20260205_0952',
         timestamp: '2026-02-05 09:52',
         promptVersion: 'v3',
@@ -15,9 +67,9 @@ window.benchmarkData = [
                 path: 'results/20260205_0952/claude-4.5-opus-high.html'
             },
             {
-                id: 'fudge-eap',
-                name: 'Claude Fudge EAP',
-                path: 'results/20260205_0952/claude-fudge-eap.html'
+                id: 'afm20260205',
+                name: 'afm20260205',
+                path: 'results/20260205_0952/afm20260205.html'
             }
         ]
     },

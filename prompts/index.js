@@ -17,6 +17,11 @@ window.promptRegistry = {
         name: 'Dark Mode',
         file: 'prompts/v3.md',
         description: 'Dark mode styling requirements'
+    },
+    'v4': {
+        name: 'Liquid Glass + Zapier Brand',
+        file: 'prompts/v4.md',
+        description: 'Liquid glass aesthetic with Zapier brand styling and Enterprise Zone PM roster'
     }
 };
 
